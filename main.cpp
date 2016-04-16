@@ -19,8 +19,9 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         if (descriptor.token()) {
-            cout << descriptor.line() << ": " << descriptor.lexeme() << " (token " <<
-                    descriptor.token() << ")\n";
+            cout << "[line: " << descriptor.line() <<
+                    ", token: " << descriptor.token() << "] " <<
+                    descriptor.lexeme() << endl;
         }
     } while (descriptor.token());
 

@@ -98,6 +98,8 @@ LexicalDescriptor LexicalAnalyzer::_string() {
 LexicalDescriptor LexicalAnalyzer::_raw_string() {
     next_char();
     while (not finished and curr_char != '`') {
+        if (curr_char == '\n')
+            ++line_no;
         curr_lexeme.push_back(curr_char);
         next_char();
     }
@@ -251,6 +253,8 @@ LexicalDescriptor LexicalAnalyzer::_block_comment() {
         }
         star = curr_char == '*';
         curr_lexeme.push_back(curr_char);
+        if (curr_char == '\n')
+            ++line_no;
         next_char();
     }
     throw LexicalAnalyzerException(curr_lexeme, line_no);

@@ -178,18 +178,24 @@ namespace algo {
             exp_part = true;
             curr_lexeme.push_back(curr_char);
             next_char();
-            if (finished)
+            if (finished or _is_white_space(curr_char))
                 throw LexicalAnalyzerException(curr_lexeme, line_no);
             curr_lexeme.push_back(curr_char);
-            if (curr_char == '+' or curr_char == '-') {
+            if (curr_char == '+' or curr_char == '-')
                 next_char();
-            }
-            if (finished)
-                throw LexicalAnalyzerException(curr_lexeme, line_no);
+            bool seen_number = false;
             while (not finished and _is_decimal(curr_char)) {
                 curr_lexeme.push_back(curr_char);
                 next_char();
+                seen_number = true;
             }
+            if (not seen_number)
+                throw LexicalAnalyzerException(curr_lexeme, line_no);
+        }
+
+        if (not finished and (_is_alpha_num(curr_char) or curr_char == '.')) {
+            curr_lexeme.push_back(curr_char);
+            throw LexicalAnalyzerException(curr_lexeme, line_no);
         }
 
         if (not dot and not exp_part) {

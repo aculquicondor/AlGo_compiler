@@ -10,77 +10,73 @@
 #include "source_code.h"
 #include "lexical_descriptor.h"
 
-namespace algo {
+class LexicalAnalyzer {
+public:
+    LexicalAnalyzer(SourceCode *source_code);
 
-    class LexicalAnalyzer {
-    public:
-        LexicalAnalyzer(SourceCode *source_code);
+    LexicalDescriptor next();
 
-        LexicalDescriptor next();
+private:
+    void next_char();
 
-    private:
-        void next_char();
+    LexicalDescriptor _identifier();
 
-        LexicalDescriptor _identifier();
+    LexicalDescriptor _rune();
 
-        LexicalDescriptor _rune();
+    LexicalDescriptor _string();
 
-        LexicalDescriptor _string();
+    LexicalDescriptor _raw_string();
 
-        LexicalDescriptor _raw_string();
+    LexicalDescriptor _number(bool dot_start);
 
-        LexicalDescriptor _number(bool dot_start);
+    LexicalDescriptor _operator();
 
-        LexicalDescriptor _operator();
+    LexicalDescriptor _line_comment();
 
-        LexicalDescriptor _line_comment();
+    LexicalDescriptor _block_comment();
 
-        LexicalDescriptor _block_comment();
+    bool _is_decimal(char c);
 
-        bool _is_decimal(char c);
+    bool _is_octal(char c);
 
-        bool _is_octal(char c);
+    bool _is_hexadecimal(char c);
 
-        bool _is_hexadecimal(char c);
+    bool _is_alpha(char c);
 
-        bool _is_alpha(char c);
+    bool _is_alpha_num(char c);
 
-        bool _is_alpha_num(char c);
+    bool _is_white_space(char c);
 
-        bool _is_white_space(char c);
+    bool _is_printable(char c);
 
-        bool _is_printable(char c);
+    static const std::vector<char> escaped_chars;
+    static const std::map<std::string, Token> reserved_words;
+    static const std::map<char, Token> single_char_token;
+    static const std::map<char, Token> operator_start;
+    static const std::map<char, Token> operator_equal;
 
-        static const std::vector<char> escaped_chars;
-        static const std::map<std::string, Token> reserved_words;
-        static const std::map<char, Token> single_char_token;
-        static const std::map<char, Token> operator_start;
-        static const std::map<char, Token> operator_equal;
-
-        SourceCode *source_code;
-        std::size_t line_no;
-        char curr_char;
-        bool finished;
-        std::string curr_lexeme;
-    };
+    SourceCode *source_code;
+    std::size_t line_no;
+    char curr_char;
+    bool finished;
+    std::string curr_lexeme;
+};
 
 
-    class LexicalAnalyzerException : public std::exception {
-    public:
-        LexicalAnalyzerException(const std::string &lexeme, std::size_t line_no);
+class LexicalAnalyzerException : public std::exception {
+public:
+    LexicalAnalyzerException(const std::string &lexeme, std::size_t line_no);
 
-        virtual const char *what() const throw();
+    virtual const char *what() const throw();
 
-        const std::string &lexeme() const;
+    const std::string &lexeme() const;
 
-        std::size_t line_no() const;
+    std::size_t line_no() const;
 
-    private:
-        std::string _lexeme;
-        std::size_t _line_no;
-        std::string msg;
-    };
-
-}
+private:
+    std::string _lexeme;
+    std::size_t _line_no;
+    std::string msg;
+};
 
 #endif //ALGO_LEXICAL_ANALYZER_H

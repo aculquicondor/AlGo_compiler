@@ -4,7 +4,6 @@
 
 
 using namespace std;
-using namespace algo;
 
 
 int main(int argc, char *argv[]) {
@@ -19,12 +18,12 @@ int main(int argc, char *argv[]) {
             cerr << exc.what() << endl;
             exit(EXIT_FAILURE);
         }
-        if (descriptor.token()) {
+        if (descriptor.token() != Token::NONE) {
             cout << "[line: " << descriptor.line() <<
-                    ", token: " << descriptor.token() << "] " <<
+                    ", token: " << descriptor.token().id() << "] " <<
                     descriptor.lexeme() << endl;
         }
-    } while (descriptor.token());
+    } while (descriptor.token() != Token::NONE);
 
     return 0;
 }

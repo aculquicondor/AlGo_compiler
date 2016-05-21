@@ -2,9 +2,9 @@
 #define ALGO_DEFINITIONS_H
 
 
-namespace algo {
-
-    enum Token {
+class Token {
+public:
+    enum _token_id {
         NONE,
         COLON,
         DOT,
@@ -84,6 +84,32 @@ namespace algo {
         STR
     };
 
-}
+    Token(_token_id id = NONE) : _id(id) { }
+
+    Token &operator=(_token_id id) {
+        this->_id = id;
+        return *this;
+    }
+
+    bool operator==(_token_id id) {
+        return this->_id == id;
+    }
+
+    bool operator!=(_token_id id) {
+        return this->_id != id;
+    }
+
+    int id() const {
+        return _id;
+    }
+
+private:
+    int _id;
+};
+
+
+class SyntaxSymbol : public Token {
+
+};
 
 #endif //ALGO_DEFINITIONS_H

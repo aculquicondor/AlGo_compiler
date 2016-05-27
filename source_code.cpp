@@ -5,6 +5,9 @@ SourceCode::SourceCode(std::string filename) :
         input(filename), buffer_position(0), buffer_length(0), finished(false) { }
 
 
+SourceCode::~SourceCode() { }
+
+
 bool SourceCode::get(char &c) {
     if (buffer_position == buffer_length) {
         if (finished)

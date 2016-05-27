@@ -6,6 +6,9 @@ LexicalAnalyzer::LexicalAnalyzer(SourceCode *source_code) :
 }
 
 
+LexicalAnalyzer::~LexicalAnalyzer() { }
+
+
 LexicalDescriptor LexicalAnalyzer::next() {
     while (not finished and _is_white_space(curr_char)) {
         if (curr_char == '\n')
@@ -191,10 +194,14 @@ LexicalDescriptor LexicalAnalyzer::_number(bool dot_start) {
             throw LexicalAnalyzerException(curr_lexeme, line_no);
     }
 
-    if (not finished and (_is_alpha_num(curr_char) or curr_char == '.')) {
+    bool extra_characters = false;
+    while (not finished and (_is_alpha_num(curr_char) or curr_char == '.')) {
         curr_lexeme.push_back(curr_char);
-        throw LexicalAnalyzerException(curr_lexeme, line_no);
+        extra_characters = true;
+        next_char();
     }
+    if (extra_characters)
+        throw LexicalAnalyzerException(curr_lexeme, line_no);
 
     if (not dot and not exp_part) {
         if (curr_lexeme[0] == '0') {
@@ -418,6 +425,9 @@ LexicalAnalyzerException::LexicalAnalyzerException(const std::string &lexeme, st
     ss << "Unknown lexeme \"" << lexeme << "\"" << "at line " << line_no << ".";
     msg = ss.str();
 }
+
+
+LexicalAnalyzerException::~LexicalAnalyzerException() { }
 
 
 const char *LexicalAnalyzerException::what() const throw() {

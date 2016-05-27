@@ -12,6 +12,8 @@ public:
 
     LexicalDescriptor(Token token, const std::string &lexeme, size_t line);
 
+    virtual ~LexicalDescriptor();
+
     Token token() const;
 
     const std::string &lexeme() const;

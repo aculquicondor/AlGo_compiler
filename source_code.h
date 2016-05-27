@@ -9,6 +9,8 @@ class SourceCode {
 public:
     SourceCode(std::string filename);
 
+    virtual ~SourceCode();
+
     bool get(char &c);
 
 private:

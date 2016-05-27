@@ -8,6 +8,9 @@ LexicalDescriptor::LexicalDescriptor(Token token, const std::string &lexeme, siz
         _token(token), _lexeme(lexeme), _line(line) { }
 
 
+LexicalDescriptor::~LexicalDescriptor() { }
+
+
 Token LexicalDescriptor::token() const {
     return _token;
 }

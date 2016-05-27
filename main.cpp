@@ -16,11 +16,10 @@ int main(int argc, char *argv[]) {
             descriptor = lex.next();
         } catch (LexicalAnalyzerException &exc) {
             cerr << exc.what() << endl;
-            exit(EXIT_FAILURE);
         }
         if (descriptor.token() != Token::NONE) {
             cout << "[line: " << descriptor.line() <<
-                    ", token: " << descriptor.token().id() << "] " <<
+                    ", token: " << descriptor.token().get_value() << "] " <<
                     descriptor.lexeme() << endl;
         }
     } while (descriptor.token() != Token::NONE);

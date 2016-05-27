@@ -4,7 +4,7 @@
 
 class Token {
 public:
-    enum _token_id {
+    enum _Token {
         NONE,
         COLON,
         DOT,
@@ -84,32 +84,88 @@ public:
         STR
     };
 
-    Token(_token_id id = NONE) : _id(id) { }
+    Token(int value = NONE) : value(value) { }
 
-    Token &operator=(_token_id id) {
-        this->_id = id;
-        return *this;
+    bool operator==(const Token &t) const {
+        return value == t.value;
     }
 
-    bool operator==(_token_id id) {
-        return this->_id == id;
+    bool operator!=(const Token &t) const {
+        return value != t.value;
     }
 
-    bool operator!=(_token_id id) {
-        return this->_id != id;
+    int get_value() const {
+        return value;
     }
 
-    int id() const {
-        return _id;
-    }
-
-private:
-    int _id;
+protected:
+    int value;
 };
 
 
 class SyntaxSymbol : public Token {
+public:
+    enum _SyntaxSymbol {
+        PACKAGE = Token::STR + 1,
+        IMPORT_DECLS,
+        PKG_DECLS,
+        CONST_DECL,
+        VAR_DECL,
+        VAR_DECLp,
+        FUNC_DECL,
+        PARAM_LIST,
+        PARAM_LISTp,
+        BLOCK,
+        TYPE,
+        BLOCK_CONST,
+        BLOCK_UNIT,
+        RETURNp,
+        DECL,
+        EXPR,
+        ASSIGNMENT,
+        ASSIGN_OPER,
+        LV1EXPR,
+        LV1EXPRp,
+        LV1OPER,
+        LV2EXPR,
+        LV2EXPRp,
+        LV2OPER,
+        LV3EXPR,
+        LV3EXPRp,
+        LV3OPER,
+        LV4EXPR,
+        LV4EXPRp,
+        LV4OPER,
+        LV5EXPR,
+        LV5EXPRp,
+        LV5OPER,
+        UNARYOPER,
+        TERM,
+        CAST,
+        ACCESS,
+        PARAMS,
+        PARAMSp,
+        IF_CONST,
+        IF_CONSTp,
+        ELSEp,
+        FOR_CONST,
+        FOR_CONSTp,
+        FOR_CONSTpp
+    };
 
+    bool is_terminal() const {
+        return value < PACKAGE;
+    }
+
+    SyntaxSymbol(int value = NONE) : Token(value) { }
+
+    bool operator==(const SyntaxSymbol &s) const {
+        return value == s.value;
+    }
+
+    bool operator!=(const SyntaxSymbol &s) const {
+        return value != s.value;
+    }
 };
 
 #endif //ALGO_DEFINITIONS_H

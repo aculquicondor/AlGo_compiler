@@ -14,6 +14,8 @@ class LexicalAnalyzer {
 public:
     LexicalAnalyzer(SourceCode *source_code);
 
+    virtual ~LexicalAnalyzer();
+
     LexicalDescriptor next();
 
 private:
@@ -66,6 +68,8 @@ private:
 class LexicalAnalyzerException : public std::exception {
 public:
     LexicalAnalyzerException(const std::string &lexeme, std::size_t line_no);
+
+    virtual ~LexicalAnalyzerException();
 
     virtual const char *what() const throw();
 

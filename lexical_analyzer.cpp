@@ -38,19 +38,19 @@ LexicalDescriptor LexicalAnalyzer::next() {
     } else if (curr_char == '.') {
         next_char();
         if (finished or not _is_decimal(curr_char))
-            return {{Token::DOT}, curr_lexeme, line_no};
+            return {Token::DOT, curr_lexeme, line_no};
         else {
             curr_lexeme.push_back(curr_char);
             return _number(true);
         }
-    } else if (curr_char == ':') {
+    } /*else if (curr_char == ':') {
         next_char();
         if (finished or curr_char != '=')
             throw LexicalAnalyzerException(curr_lexeme, line_no);
         curr_lexeme.push_back(curr_char);
         next_char();
-        return {{Token::DECL_ASSIGN}, curr_lexeme, line_no};
-    } else if (operator_start.find(curr_char) != operator_start.end()) {
+        return {Token::DECL_ASSIGN, curr_lexeme, line_no};
+    } */else if (operator_start.find(curr_char) != operator_start.end()) {
         return _operator();
     }
     else {
@@ -73,7 +73,7 @@ LexicalDescriptor LexicalAnalyzer::_identifier() {
     auto reserved_word = reserved_words.find(curr_lexeme);
     if (reserved_word != reserved_words.end())
         return LexicalDescriptor(reserved_word->second, curr_lexeme, line_no);
-    return {{Token::IDENT}, curr_lexeme, line_no};
+    return {Token::IDENT, curr_lexeme, line_no};
 }
 
 LexicalDescriptor LexicalAnalyzer::_rune() {
@@ -94,7 +94,7 @@ LexicalDescriptor LexicalAnalyzer::_rune() {
         throw LexicalAnalyzerException(curr_lexeme, line_no);
     curr_lexeme.push_back(curr_char);
     next_char();
-    return {{Token::RUNE}, curr_lexeme, line_no};
+    return {Token::RUNE, curr_lexeme, line_no};
 }
 
 LexicalDescriptor LexicalAnalyzer::_string() {
@@ -115,7 +115,7 @@ LexicalDescriptor LexicalAnalyzer::_string() {
         throw LexicalAnalyzerException(curr_lexeme, line_no);
     curr_lexeme.push_back(curr_char);
     next_char();
-    return {{Token::STRING}, curr_lexeme, line_no};
+    return {Token::STRING, curr_lexeme, line_no};
 }
 
 
@@ -131,7 +131,7 @@ LexicalDescriptor LexicalAnalyzer::_raw_string() {
         throw LexicalAnalyzerException(curr_lexeme, line_no);
     curr_lexeme.push_back(curr_char);
     next_char();
-    return {{Token::R_STRING}, curr_lexeme, line_no};
+    return {Token::R_STRING, curr_lexeme, line_no};
 }
 
 
@@ -149,7 +149,7 @@ LexicalDescriptor LexicalAnalyzer::_number(bool dot_start) {
                 }
                 if (curr_lexeme.size() == 2)
                     throw LexicalAnalyzerException(curr_lexeme, line_no);
-                return {{Token::HEXADEC}, curr_lexeme, line_no};
+                return {Token::HEXADEC, curr_lexeme, line_no};
             }
         } else {
             next_char();
@@ -208,12 +208,12 @@ LexicalDescriptor LexicalAnalyzer::_number(bool dot_start) {
             for (char c : curr_lexeme)
                 if (not _is_octal(c))
                     throw LexicalAnalyzerException(curr_lexeme, line_no);
-            return {{Token::OCTAL}, curr_lexeme, line_no};
+            return {Token::OCTAL, curr_lexeme, line_no};
         }
-        return {{Token::DEC}, curr_lexeme, line_no};
+        return {Token::DEC, curr_lexeme, line_no};
     }
 
-    return {{Token::FLOAT}, curr_lexeme, line_no};
+    return {Token::FLOAT, curr_lexeme, line_no};
 }
 
 
@@ -232,22 +232,22 @@ LexicalDescriptor LexicalAnalyzer::_operator() {
         if (curr_lexeme[0] == '+' and curr_char == '+') {
             curr_lexeme.push_back(curr_char);
             next_char();
-            return {{Token::INCR}, curr_lexeme, line_no};
+            return {Token::INCR, curr_lexeme, line_no};
         }
         if (curr_lexeme[0] == '-' and curr_char == '-') {
             curr_lexeme.push_back(curr_char);
             next_char();
-            return {{Token::DECR}, curr_lexeme, line_no};
+            return {Token::DECR, curr_lexeme, line_no};
         }
         if (curr_lexeme[0] == '&' and curr_char == '&') {
             curr_lexeme.push_back(curr_char);
             next_char();
-            return {{Token::AND}, curr_lexeme, line_no};
+            return {Token::AND, curr_lexeme, line_no};
         }
         if (curr_lexeme[0] == '|' and curr_char == '|') {
             curr_lexeme.push_back(curr_char);
             next_char();
-            return {{Token::OR}, curr_lexeme, line_no};
+            return {Token::OR, curr_lexeme, line_no};
         }
         if ((curr_lexeme[0] == '<' or curr_lexeme[0] == '>') and curr_char == curr_lexeme[0]) {
             curr_lexeme.push_back(curr_char);
@@ -255,9 +255,9 @@ LexicalDescriptor LexicalAnalyzer::_operator() {
             if (not finished and curr_char == '=') {
                 curr_lexeme.push_back(curr_char);
                 next_char();
-                return {{curr_lexeme[0] == '<' ? Token::A_L_SHIFT : Token::A_R_SHIFT}, curr_lexeme, line_no};
+                return {curr_lexeme[0] == '<' ? Token::A_L_SHIFT : Token::A_R_SHIFT, curr_lexeme, line_no};
             }
-            return {{curr_lexeme[0] == '<' ? Token::L_SHIFT : Token::R_SHIFT}, curr_lexeme, line_no};
+            return {curr_lexeme[0] == '<' ? Token::L_SHIFT : Token::R_SHIFT, curr_lexeme, line_no};
         }
         if (curr_lexeme[0] == '&' and curr_char == '^') {
             curr_lexeme.push_back(curr_char);
@@ -265,9 +265,9 @@ LexicalDescriptor LexicalAnalyzer::_operator() {
             if (not finished and curr_char == '=') {
                 curr_lexeme.push_back(curr_char);
                 next_char();
-                return {{Token::A_BW_AND_NOT}, curr_lexeme, line_no};
+                return {Token::A_BW_AND_NOT, curr_lexeme, line_no};
             }
-            return {{Token::BW_AND_NOT}, curr_lexeme, line_no};
+            return {Token::BW_AND_NOT, curr_lexeme, line_no};
         }
     }
     if (curr_char == '=') {

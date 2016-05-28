@@ -1,6 +1,8 @@
 #ifndef ALGO_DEFINITIONS_H
 #define ALGO_DEFINITIONS_H
 
+#include <map>
+
 
 class Token {
 public:
@@ -40,7 +42,7 @@ public:
         INCR,
         DECR,
         ASSIGN,
-        DECL_ASSIGN,
+        // DECL_ASSIGN,
         EQ,
         NEQ,
         LT,
@@ -117,11 +119,12 @@ public:
         PARAM_LISTp,
         BLOCK,
         TYPE,
-        BLOCK_CONST,
+        BLOCK_CONTS,
         BLOCK_UNIT,
         RETURNp,
         DECL,
         EXPR,
+        EXPRp,
         ASSIGNMENT,
         ASSIGN_OPER,
         LV1EXPR,
@@ -141,8 +144,11 @@ public:
         LV5OPER,
         UNARYOPER,
         TERM,
+        IDCR,
         CAST,
         ACCESS,
+        FUNC_CALL,
+        ARRAY_ACC,
         PARAMS,
         PARAMSp,
         IF_CONST,
@@ -153,11 +159,12 @@ public:
         FOR_CONSTpp
     };
 
-    bool is_terminal() const {
-        return value < PACKAGE;
-    }
-
     SyntaxSymbol(int value = NONE) : Token(value) { }
+
+    SyntaxSymbol(const std::string name) {
+        auto it = str_to_value.find(name);
+        value = it != str_to_value.end() ? it->second : NONE;
+    }
 
     bool operator==(const SyntaxSymbol &s) const {
         return value == s.value;
@@ -166,6 +173,13 @@ public:
     bool operator!=(const SyntaxSymbol &s) const {
         return value != s.value;
     }
+
+    bool is_terminal() const {
+        return value < PACKAGE;
+    }
+
+private:
+    static const std::map<std::string, int> str_to_value;
 };
 
 #endif //ALGO_DEFINITIONS_H

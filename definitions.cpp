@@ -88,6 +88,7 @@ const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"VAR_DECL", VAR_DECL},
         {"VAR_DECLp", VAR_DECLp},
         {"FUNC_DECL", FUNC_DECL},
+        {"FUNC_DECLp", FUNC_DECLp},
         {"PARAM_LIST", PARAM_LIST},
         {"PARAM_LISTp", PARAM_LISTp},
         {"BLOCK", BLOCK},

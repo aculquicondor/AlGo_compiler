@@ -106,6 +106,7 @@ public:
         VAR_DECL,
         VAR_DECLp,
         FUNC_DECL,
+        FUNC_DECLp,
         PARAM_LIST,
         PARAM_LISTp,
         BLOCK,

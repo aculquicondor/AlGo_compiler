@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "syntax_analyzer.h"
 
 
@@ -12,8 +14,10 @@ SyntaxAnalyzer::SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer) : lexical_anal
         getline(ss, symbol, ',');
         while (not ss.eof()) {
             getline(ss, symbol, ',');
-            if (symbol.size())
+            if (symbol.size()) {
                 production.push_back(symbol);
+                assert(production.back() != SyntaxSymbol::NONE);
+            }
         }
         productions.push_back(production);
         getline(productions_file, line);
@@ -47,13 +51,17 @@ bool SyntaxAnalyzer::analyze() {
     LexicalDescriptor descriptor = lexical_analyzer->next();
     bool found_errors = false;
     do {
+        bool need_next_token = false;
         try {
+
             if (stack.top().is_terminal()) {
                 if (stack.top() == descriptor.get_token()) {
                     stack.pop();
+
                     if (descriptor.get_token() == Token::NONE)
                         break;
-                    descriptor = lexical_analyzer->next();
+
+                    need_next_token = true;
                 } else {
                     throw SyntaxError(descriptor);
                 }
@@ -63,23 +71,27 @@ bool SyntaxAnalyzer::analyze() {
                 for (auto it = production.rbegin(); it != production.rend(); ++it)
                     stack.push(*it);
             }
+
         } catch (SyntaxError &err) {
             std::cerr << err.what() << std::endl;
             found_errors = true;
+
             if (descriptor.get_token() == Token::NONE)
                 break;
-            try {
-                descriptor = lexical_analyzer->next();
-            } catch (LexicalError &err) {
-                std::cerr << err.what() << std::endl;
-                found_errors = true;
-                break;
+
+            need_next_token = true;
+
+        }
+        if (need_next_token) {
+            while (true) {
+                try {
+                    descriptor = lexical_analyzer->next();
+                    break;
+                } catch (LexicalError &err) {
+                    std::cerr << err.what() << std::endl;
+                    found_errors = true;
+                }
             }
-            continue;
-        } catch (LexicalError &err) {
-            std::cerr << err.what() << std::endl;
-            found_errors = true;
-            break;
         }
     } while (not stack.empty());
 

@@ -28,8 +28,10 @@ SyntaxAnalyzer::SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer) : lexical_anal
         getline(ss, symbol, ',');
         for (int token = 1; not ss.eof(); ++token) {
             getline(ss, symbol, ',');
-            if (symbol.size())
-                row[token] = atoi(symbol.c_str()) - 1;
+            if (symbol.size()) {
+                std::stringstream(symbol) >> row[token];
+                --row[token];
+            }
         }
         syntactic_table.push_back(row);
         getline(syntactic_table_file, line);

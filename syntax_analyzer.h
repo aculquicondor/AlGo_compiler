@@ -2,7 +2,6 @@
 #define ALGO_SYNTAX_ANALYZER_H
 
 #include <fstream>
-#include <cstdlib>
 
 #include "lexical_analyzer.h"
 

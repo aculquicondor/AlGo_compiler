@@ -64,21 +64,27 @@ private:
 };
 
 
-class LexicalAnalyzerException : public std::exception {
+class LexicalError : public std::exception {
 public:
-    LexicalAnalyzerException(const std::string &lexeme, std::size_t line_no);
+    LexicalError(const std::string &lexeme, std::size_t line_no);
 
-    virtual ~LexicalAnalyzerException();
+    virtual ~LexicalError();
 
-    virtual const char *what() const throw();
+    virtual const char *what() const throw() {
+        return msg.c_str();
+    }
 
-    const std::string &lexeme() const;
+    const std::string &get_lexeme() const {
+        return lexeme;
+    }
 
-    std::size_t line_no() const;
+    std::size_t get_line_no() const {
+        return line_no;
+    }
 
 private:
-    std::string _lexeme;
-    std::size_t _line_no;
+    std::string lexeme;
+    std::size_t line_no;
     std::string msg;
 };
 

@@ -1,26 +1,26 @@
 #include "lexical_descriptor.h"
 
 
-LexicalDescriptor::LexicalDescriptor() : _token() { }
+LexicalDescriptor::LexicalDescriptor() : token() { }
 
 
 LexicalDescriptor::LexicalDescriptor(Token token, const std::string &lexeme, size_t line) :
-        _token(token), _lexeme(lexeme), _line(line) { }
+        token(token), lexeme(lexeme), line(line) { }
 
 
 LexicalDescriptor::~LexicalDescriptor() { }
 
 
-Token LexicalDescriptor::token() const {
-    return _token;
+Token LexicalDescriptor::get_token() const {
+    return token;
 }
 
 
-const std::string &LexicalDescriptor::lexeme() const {
-    return _lexeme;
+const std::string &LexicalDescriptor::get_lexeme() const {
+    return lexeme;
 }
 
 
-size_t LexicalDescriptor::line() const {
-    return _line;
+size_t LexicalDescriptor::get_line_no() const {
+    return line;
 }

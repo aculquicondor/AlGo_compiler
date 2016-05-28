@@ -46,7 +46,7 @@ LexicalDescriptor LexicalAnalyzer::next() {
     } /*else if (curr_char == ':') {
         next_char();
         if (finished or curr_char != '=')
-            throw LexicalAnalyzerException(curr_lexeme, line_no);
+            throw LexicalError(curr_lexeme, line_no);
         curr_lexeme.push_back(curr_char);
         next_char();
         return {Token::DECL_ASSIGN, curr_lexeme, line_no};
@@ -54,7 +54,7 @@ LexicalDescriptor LexicalAnalyzer::next() {
         return _operator();
     }
     else {
-        throw LexicalAnalyzerException(curr_lexeme, line_no);
+        throw LexicalError(curr_lexeme, line_no);
     }
 }
 
@@ -79,19 +79,19 @@ LexicalDescriptor LexicalAnalyzer::_identifier() {
 LexicalDescriptor LexicalAnalyzer::_rune() {
     next_char();
     if (finished or not _is_printable(curr_char))
-        throw LexicalAnalyzerException(curr_lexeme, line_no);
+        throw LexicalError(curr_lexeme, line_no);
     curr_lexeme.push_back(curr_char);
     if (curr_char == '\\') {
         next_char();
         if (finished)
-            throw LexicalAnalyzerException(curr_lexeme, line_no);
+            throw LexicalError(curr_lexeme, line_no);
         curr_lexeme.push_back(curr_char);
         if (not std::binary_search(escaped_chars.begin(), escaped_chars.end(), curr_char))
-            throw LexicalAnalyzerException(curr_lexeme, line_no);
+            throw LexicalError(curr_lexeme, line_no);
     }
     next_char();
     if (finished or curr_char != '\'')
-        throw LexicalAnalyzerException(curr_lexeme, line_no);
+        throw LexicalError(curr_lexeme, line_no);
     curr_lexeme.push_back(curr_char);
     next_char();
     return {Token::RUNE, curr_lexeme, line_no};
@@ -104,15 +104,15 @@ LexicalDescriptor LexicalAnalyzer::_string() {
         if (curr_char == '\\') {
             next_char();
             if (finished)
-                throw LexicalAnalyzerException(curr_lexeme, line_no);
+                throw LexicalError(curr_lexeme, line_no);
             curr_lexeme.push_back(curr_char);
             if (not std::binary_search(escaped_chars.begin(), escaped_chars.end(), curr_char))
-                throw LexicalAnalyzerException(curr_lexeme, line_no);
+                throw LexicalError(curr_lexeme, line_no);
         }
         next_char();
     }
     if (finished or curr_char != '"')
-        throw LexicalAnalyzerException(curr_lexeme, line_no);
+        throw LexicalError(curr_lexeme, line_no);
     curr_lexeme.push_back(curr_char);
     next_char();
     return {Token::STRING, curr_lexeme, line_no};
@@ -128,7 +128,7 @@ LexicalDescriptor LexicalAnalyzer::_raw_string() {
         next_char();
     }
     if (finished or curr_char != '`')
-        throw LexicalAnalyzerException(curr_lexeme, line_no);
+        throw LexicalError(curr_lexeme, line_no);
     curr_lexeme.push_back(curr_char);
     next_char();
     return {Token::R_STRING, curr_lexeme, line_no};
@@ -148,7 +148,7 @@ LexicalDescriptor LexicalAnalyzer::_number(bool dot_start) {
                     next_char();
                 }
                 if (curr_lexeme.size() == 2)
-                    throw LexicalAnalyzerException(curr_lexeme, line_no);
+                    throw LexicalError(curr_lexeme, line_no);
                 return {Token::HEXADEC, curr_lexeme, line_no};
             }
         } else {
@@ -180,7 +180,7 @@ LexicalDescriptor LexicalAnalyzer::_number(bool dot_start) {
         curr_lexeme.push_back(curr_char);
         next_char();
         if (finished or _is_white_space(curr_char))
-            throw LexicalAnalyzerException(curr_lexeme, line_no);
+            throw LexicalError(curr_lexeme, line_no);
         curr_lexeme.push_back(curr_char);
         if (curr_char == '+' or curr_char == '-')
             next_char();
@@ -191,7 +191,7 @@ LexicalDescriptor LexicalAnalyzer::_number(bool dot_start) {
             seen_number = true;
         }
         if (not seen_number)
-            throw LexicalAnalyzerException(curr_lexeme, line_no);
+            throw LexicalError(curr_lexeme, line_no);
     }
 
     bool extra_characters = false;
@@ -201,13 +201,13 @@ LexicalDescriptor LexicalAnalyzer::_number(bool dot_start) {
         next_char();
     }
     if (extra_characters)
-        throw LexicalAnalyzerException(curr_lexeme, line_no);
+        throw LexicalError(curr_lexeme, line_no);
 
     if (not dot and not exp_part) {
         if (curr_lexeme[0] == '0') {
             for (char c : curr_lexeme)
                 if (not _is_octal(c))
-                    throw LexicalAnalyzerException(curr_lexeme, line_no);
+                    throw LexicalError(curr_lexeme, line_no);
             return {Token::OCTAL, curr_lexeme, line_no};
         }
         return {Token::DEC, curr_lexeme, line_no};
@@ -301,7 +301,7 @@ LexicalDescriptor LexicalAnalyzer::_block_comment() {
             ++line_no;
         next_char();
     }
-    throw LexicalAnalyzerException(curr_lexeme, line_no);
+    throw LexicalError(curr_lexeme, line_no);
 }
 
 
@@ -419,26 +419,12 @@ const std::map<char, Token> LexicalAnalyzer::operator_equal = {
 };
 
 
-LexicalAnalyzerException::LexicalAnalyzerException(const std::string &lexeme, std::size_t line_no) :
-        _lexeme(lexeme), _line_no(line_no) {
+LexicalError::LexicalError(const std::string &lexeme, std::size_t line_no) :
+        lexeme(lexeme), line_no(line_no) {
     std::stringstream ss;
     ss << "Unknown lexeme \"" << lexeme << "\"" << "at line " << line_no << ".";
     msg = ss.str();
 }
 
 
-LexicalAnalyzerException::~LexicalAnalyzerException() { }
-
-
-const char *LexicalAnalyzerException::what() const throw() {
-    return msg.c_str();
-}
-
-
-const std::string &LexicalAnalyzerException::lexeme() const {
-    return _lexeme;
-}
-
-std::size_t LexicalAnalyzerException::line_no() const {
-    return _line_no;
-}
+LexicalError::~LexicalError() { }

@@ -1,6 +1,11 @@
 #include "definitions.h"
 
 
+const int SyntaxSymbol::FIRST_NT = PACKAGE;
+
+const int SyntaxSymbol::LAST = FOR_CONSTpp;
+
+
 const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"NONE", NONE},
         {"COLON", COLON},
@@ -79,6 +84,7 @@ const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"FL64", FL64},
         {"RN", RN},
         {"STR", STR},
+        {"$", END},
         {"PACKAGE", PACKAGE},
         {"IMPORT_DECLS", IMPORT_DECLS},
         {"PKG_DECLS", PKG_DECLS},
@@ -96,7 +102,6 @@ const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"DECL", DECL},
         {"EXPR", EXPR},
         {"EXPRp", EXPRp},
-        {"ASSIGNMENT", ASSIGNMENT},
         {"ASSIGN_OPER", ASSIGN_OPER},
         {"LV1EXPR", LV1EXPR},
         {"LV1EXPRp", LV1EXPRp},
@@ -120,6 +125,7 @@ const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"ACCESS", ACCESS},
         {"FUNC_CALL", FUNC_CALL},
         {"ARRAY_ACC", ARRAY_ACC},
+        {"ARRAY_ACCp", ARRAY_ACCp},
         {"PARAMS", PARAMS},
         {"PARAMSp", PARAMSp},
         {"IF_CONST", IF_CONST},

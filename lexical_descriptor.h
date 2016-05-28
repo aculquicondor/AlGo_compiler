@@ -14,16 +14,16 @@ public:
 
     virtual ~LexicalDescriptor();
 
-    Token token() const;
+    Token get_token() const;
 
-    const std::string &lexeme() const;
+    const std::string &get_lexeme() const;
 
-    std::size_t line() const;
+    std::size_t get_line_no() const;
 
 private:
-    Token _token;
-    std::string _lexeme;
-    std::size_t _line;
+    Token token;
+    std::string lexeme;
+    std::size_t line;
 };
 
 #endif //ALGO_LEXICAL_DESCRIPTOR_H

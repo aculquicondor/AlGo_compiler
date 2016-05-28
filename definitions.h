@@ -83,7 +83,8 @@ public:
         FL32,
         FL64,
         RN,
-        STR
+        STR,
+        END
     };
 
     Token(int value = NONE) : value(value) { }
@@ -96,8 +97,12 @@ public:
         return value != t.value;
     }
 
-    int get_value() const {
+    operator int() {
         return value;
+    }
+
+    bool operator<(const Token &s) const {
+        return value < s.value;
     }
 
 protected:
@@ -108,7 +113,7 @@ protected:
 class SyntaxSymbol : public Token {
 public:
     enum _SyntaxSymbol {
-        PACKAGE = Token::STR + 1,
+        PACKAGE = Token::END + 1,
         IMPORT_DECLS,
         PKG_DECLS,
         CONST_DECL,
@@ -125,7 +130,6 @@ public:
         DECL,
         EXPR,
         EXPRp,
-        ASSIGNMENT,
         ASSIGN_OPER,
         LV1EXPR,
         LV1EXPRp,
@@ -149,6 +153,7 @@ public:
         ACCESS,
         FUNC_CALL,
         ARRAY_ACC,
+        ARRAY_ACCp,
         PARAMS,
         PARAMSp,
         IF_CONST,
@@ -175,8 +180,11 @@ public:
     }
 
     bool is_terminal() const {
-        return value < PACKAGE;
+        return value < FIRST_NT;
     }
+
+    static const int FIRST_NT;
+    static const int LAST;
 
 private:
     static const std::map<std::string, int> str_to_value;

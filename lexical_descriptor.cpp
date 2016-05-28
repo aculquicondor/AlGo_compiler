@@ -11,7 +11,7 @@ LexicalDescriptor::LexicalDescriptor(Token token, const std::string &lexeme, siz
 LexicalDescriptor::~LexicalDescriptor() { }
 
 
-Token LexicalDescriptor::get_token() const {
+const Token &LexicalDescriptor::get_token() const {
     return token;
 }
 

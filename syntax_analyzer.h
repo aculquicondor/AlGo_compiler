@@ -2,12 +2,17 @@
 #define ALGO_SYNTAX_ANALYZER_H
 
 #include <fstream>
+#include <iostream>
+#include <stack>
 
 #include "lexical_analyzer.h"
 
 class SyntaxAnalyzer {
 public:
     SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer);
+
+    bool analyze();
+
 private:
     std::vector<SyntaxSymbol> _get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
 

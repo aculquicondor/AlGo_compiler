@@ -8,9 +8,9 @@ class Token {
 public:
     enum _Token {
         NONE,
-        COLON,
+        COL,
         DOT,
-        SEMICOLON,
+        SEMICOL,
         O_PAREN,
         C_PAREN,
         O_BRACK,
@@ -42,7 +42,6 @@ public:
         INCR,
         DECR,
         ASSIGN,
-        // DECL_ASSIGN,
         EQ,
         NEQ,
         LT,
@@ -84,25 +83,12 @@ public:
         FL64,
         RN,
         STR,
-        END
     };
 
     Token(int value = NONE) : value(value) { }
 
-    bool operator==(const Token &t) const {
-        return value == t.value;
-    }
-
-    bool operator!=(const Token &t) const {
-        return value != t.value;
-    }
-
-    operator int() {
+    operator int() const {
         return value;
-    }
-
-    bool operator<(const Token &s) const {
-        return value < s.value;
     }
 
 protected:
@@ -113,7 +99,7 @@ protected:
 class SyntaxSymbol : public Token {
 public:
     enum _SyntaxSymbol {
-        PACKAGE = Token::END + 1,
+        PACKAGE = Token::STR + 1,
         IMPORT_DECLS,
         PKG_DECLS,
         CONST_DECL,
@@ -171,20 +157,11 @@ public:
         value = it != str_to_value.end() ? it->second : NONE;
     }
 
-    bool operator==(const SyntaxSymbol &s) const {
-        return value == s.value;
-    }
-
-    bool operator!=(const SyntaxSymbol &s) const {
-        return value != s.value;
-    }
-
     bool is_terminal() const {
         return value < FIRST_NT;
     }
 
     static const int FIRST_NT;
-    static const int LAST;
 
 private:
     static const std::map<std::string, int> str_to_value;

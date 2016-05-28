@@ -1,10 +1,10 @@
-,COL,DOT,SEMICOL,O_PAREN,C_PAREN,O_BRACK,C_BRACK,O_SQBRACK,C_SQBRACK,PLUS,MINUS,TIMES,DIV,MOD,BW_AND,BW_AND_NOT,BW_OR,BW_XOR_NEG,L_SHIFT,R_SHIFT,A_PLUS,A_MINUS,A_TIMES,A_DIV,A_MOD,A_BW_AND,A_BW_AND_NOT,A_BW_OR,A_BW_XOR,A_L_SHIFT,A_R_SHIFT,INCR,DECR,ASSING,DECL_ASSIGN,EQ,NEQ,LT,GT,LTE,GTE,OR,AND,NOT,IDENT,DEC,OCTAL,FLOAT,RUNE,STRING,R_STRING,TRUE,FALSE,CONST,VAR,FOR,IF,ELSE,BREAK,CONTINUE,RETURN,FUNC,PKG,IMP,BOOL,INT,I32,I64,UINT,UI32,UI64,FL32,FL64,RN,STR,$
-PACKAGE,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,
-IMPORT_DECLS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2,2,,,,,,,2,,4,,,,,,,,,,,,
-PKG_DECLS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,5,6,,,,,,,7,,,,,,,,,,,,,,1
-CONST_DECL,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,8,,,,,,,,,,,,,,,,,,,,,,
-VAR_DECL,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,9,,,,,,,,,,,,,,,,,,,,,
-VAR_DECLp,,,11,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,NONE,COL,DOT,SEMICOL,O_PAREN,C_PAREN,O_BRACK,C_BRACK,O_SQBRACK,C_SQBRACK,PLUS,MINUS,TIMES,DIV,MOD,BW_AND,BW_AND_NOT,BW_OR,BW_XOR_NEG,L_SHIFT,R_SHIFT,A_PLUS,A_MINUS,A_TIMES,A_DIV,A_MOD,A_BW_AND,A_BW_AND_NOT,A_BW_OR,A_BW_XOR,A_L_SHIFT,A_R_SHIFT,INCR,DECR,ASSING,DECL_ASSIGN,EQ,NEQ,LT,GT,LTE,GTE,OR,AND,NOT,IDENT,DEC,OCTAL,FLOAT,RUNE,STRING,R_STRING,TRUE,FALSE,CONST,VAR,FOR,IF,ELSE,BREAK,CONTINUE,RETURN,FUNC,PKG,IMP,BOOL,INT,I32,I64,UINT,UI32,UI64,FL32,FL64,RN,STR
+PACKAGE,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,
+IMPORT_DECLS,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1,1,,,,,,,1,,3,,,,,,,,,,,
+PKG_DECLS,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,4,5,,,,,,,6,,,,,,,,,,,,,
+CONST_DECL,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,7,,,,,,,,,,,,,,,,,,,,,
+VAR_DECL,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,8,,,,,,,,,,,,,,,,,,,,
+VAR_DECLp,,,,11,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FUNC_DECL,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 PARAM_LIST,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 PARAM_LISTp,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

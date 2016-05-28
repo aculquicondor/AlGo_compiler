@@ -376,8 +376,8 @@ const std::map<std::string, Token> LexicalAnalyzer::reserved_words = {
 
 
 const std::map<char, Token> LexicalAnalyzer::single_char_token = {
-        {',', Token::COLON},
-        {';', Token::SEMICOLON},
+        {',', Token::COL},
+        {';', Token::SEMICOL},
         {'(', Token::O_PAREN},
         {')', Token::C_PAREN},
         {'{', Token::O_BRACK},

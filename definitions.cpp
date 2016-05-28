@@ -3,14 +3,12 @@
 
 const int SyntaxSymbol::FIRST_NT = PACKAGE;
 
-const int SyntaxSymbol::LAST = FOR_CONSTpp;
-
 
 const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"NONE", NONE},
-        {"COLON", COLON},
+        {"COL", COL},
         {"DOT", DOT},
-        {"SEMICOLON", SEMICOLON},
+        {"SEMICOL", SEMICOL},
         {"O_PAREN", O_PAREN},
         {"C_PAREN", C_PAREN},
         {"O_BRACK", O_BRACK},
@@ -42,7 +40,6 @@ const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"INCR", INCR},
         {"DECR", DECR},
         {"ASSIGN", ASSIGN},
-        // {"DECL_ASSIGN", DECL_ASSIGN},
         {"EQ", EQ},
         {"NEQ", NEQ},
         {"LT", LT},
@@ -84,7 +81,6 @@ const std::map<std::string, int> SyntaxSymbol::str_to_value{
         {"FL64", FL64},
         {"RN", RN},
         {"STR", STR},
-        {"$", END},
         {"PACKAGE", PACKAGE},
         {"IMPORT_DECLS", IMPORT_DECLS},
         {"PKG_DECLS", PKG_DECLS},

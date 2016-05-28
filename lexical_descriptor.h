@@ -14,7 +14,7 @@ public:
 
     virtual ~LexicalDescriptor();
 
-    Token get_token() const;
+    const Token &get_token() const;
 
     const std::string &get_lexeme() const;
 

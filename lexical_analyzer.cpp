@@ -414,7 +414,7 @@ const std::map<char, Token> LexicalAnalyzer::operator_equal = {
         {'<', Token::LTE},
         {'=', Token::EQ},
         {'>', Token::GTE},
-        {'^', Token::A_BW_XOR_NEG},
+        {'^', Token::A_BW_XOR},
         {'|', Token::A_BW_OR}
 };
 

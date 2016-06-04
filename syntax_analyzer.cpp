@@ -1,4 +1,6 @@
+#ifdef DEBUG
 #include <cassert>
+#endif
 
 #include "syntax_analyzer.h"
 
@@ -16,7 +18,9 @@ SyntaxAnalyzer::SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer) : lexical_anal
             getline(ss, symbol, ',');
             if (symbol.size()) {
                 production.push_back(symbol);
+#ifdef DEBUG
                 assert(production.back() != SyntaxSymbol::NONE);
+#endif
             }
         }
         productions.push_back(production);
@@ -26,15 +30,22 @@ SyntaxAnalyzer::SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer) : lexical_anal
     std::ifstream syntactic_table_file("syntactic_table.csv");
     getline(syntactic_table_file, line);
     getline(syntactic_table_file, line);
-    while (line.size()) {
+    for (int row_count = 0; line.size(); ++row_count) {
         std::stringstream ss(line);
         std::map<Token, int> row;
         getline(ss, symbol, ',');
+#ifdef DEBUG
+        assert(SyntaxSymbol(symbol) == row_count + SyntaxSymbol::FIRST_NT);
+#endif
         for (int token = 0; not ss.eof(); ++token) {
             getline(ss, symbol, ',');
             if (symbol.size()) {
                 std::stringstream(symbol) >> row[token];
                 --row[token];
+#ifdef DEBUG
+                assert(row[token] < productions.size());
+                assert(token < SyntaxSymbol::FIRST_NT);
+#endif
             }
         }
         syntactic_table.push_back(row);

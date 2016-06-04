@@ -3,6 +3,8 @@ project(algo)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
 set(SOURCE_FILES main.cpp
         definitions.cpp definitions.h
         lexical_descriptor.cpp lexical_descriptor.h

@@ -68,13 +68,14 @@ bool SyntaxAnalyzer::analyze() {
             if (stack.top().is_terminal()) {
                 if (stack.top() == descriptor.get_token()) {
                     stack.pop();
+                    need_next_token = true;
 
                     if (descriptor.get_token() == Token::NONE)
                         break;
-
-                    need_next_token = true;
                 } else {
-                    throw SyntaxError(descriptor);
+                    SyntaxSymbol expected = stack.top();
+                    stack.pop();
+                    throw SyntaxError(descriptor, expected);
                 }
             } else {
                 auto production = _get_production(stack.top(), descriptor);
@@ -90,9 +91,12 @@ bool SyntaxAnalyzer::analyze() {
             if (descriptor.get_token() == Token::NONE)
                 break;
 
-            need_next_token = true;
-
+            if (not err.get_expected()) {
+                while (not stack.empty() and not _has_production(stack.top(), descriptor))
+                    stack.pop();
+            }
         }
+
         if (need_next_token) {
             while (true) {
                 try {
@@ -119,10 +123,22 @@ std::vector<SyntaxSymbol> SyntaxAnalyzer::_get_production(SyntaxSymbol symbol, L
 }
 
 
-SyntaxError::SyntaxError(const LexicalDescriptor &lex) {
+bool SyntaxAnalyzer::_has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
+    if (symbol.is_terminal())
+        return symbol == descriptor.get_token();
+    auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NT];
+    return row.find(descriptor.get_token()) != row.end();
+}
+
+
+SyntaxError::SyntaxError(const LexicalDescriptor &lex, Token expected) :
+        descriptor(lex), expected(expected) {
     std::stringstream ss;
     ss << "Unexpected token " << lex.get_token() <<
             " <" << lex.get_lexeme() << "> at line " << lex.get_line_no() << ".";
+    if (expected != Token::NONE) {
+        ss << " Expected token " << expected << ".";
+    }
     msg = ss.str();
 }
 

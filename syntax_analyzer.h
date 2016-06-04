@@ -15,6 +15,7 @@ public:
 
 private:
     std::vector<SyntaxSymbol> _get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
+    bool _has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
 
     LexicalAnalyzer *lexical_analyzer;
     std::vector<std::vector<SyntaxSymbol>> productions;
@@ -24,7 +25,7 @@ private:
 
 class SyntaxError : public std::exception {
 public:
-    SyntaxError(const LexicalDescriptor &lex);
+    SyntaxError(const LexicalDescriptor &lex, Token expected = Token::NONE);
 
     virtual ~SyntaxError();
 
@@ -40,8 +41,13 @@ public:
         return descriptor.get_line_no();
     }
 
+    SyntaxSymbol get_expected() const {
+        return expected;
+    }
+
 private:
     LexicalDescriptor descriptor;
+    SyntaxSymbol expected;
     std::string msg;
 };
 

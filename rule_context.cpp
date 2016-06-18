@@ -8,7 +8,7 @@
 RuleContext::RuleContext() :
         symbol_table(),
         lexemes(new std::stack<std::string>[Token::NUM_OF_TOKENS]),
-        attributes(new std::stack<SymbolAttributes>[SyntaxSymbol::NUM_OF_SYMBOLS]) {
+        attributes(new std::vector<SymbolAttributes>[SyntaxSymbol::NUM_OF_SYMBOLS]) {
 }
 
 
@@ -25,7 +25,7 @@ RuleContext::~RuleContext() {
 
 
 void RuleContext::add_symbol(Token token) {
-    attributes[token].push(SymbolAttributes{});
+    attributes[token].push_back(SymbolAttributes{});
 }
 
 
@@ -47,15 +47,16 @@ void RuleContext::remove_symbol(Token token) {
 #ifdef DEBUG
     assert(not attributes[token].empty());
 #endif
-    attributes[token].pop();
+    attributes[token].pop_back();
 }
 
 
-SymbolAttributes &RuleContext::get_attributes(SyntaxSymbol symbol) const {
+SymbolAttributes &RuleContext::get_attributes(SyntaxSymbol symbol,
+                                              std::size_t r_idx) const {
 #ifdef DEBUG
-    assert(not attributes[symbol].empty());
+    assert(attributes[symbol].size() > r_idx);
 #endif
-    return attributes[symbol].top();
+    return attributes[symbol][attributes[symbol].size() - r_idx - 1];
 }
 
 
@@ -83,8 +84,7 @@ long RuleContext::get_int_value(Token token) const {
     if (token == Token::DEC) {
         for (char c : lex)
             value = value * 10 + (c - '0');
-    }
-    if (token == Token::OCTAL) {
+    } else if (token == Token::OCTAL) {
         for (char c : lex.substr(1))
             value = value * 8 + (c - '0');
     } else if (token == Token::HEXADEC) {

@@ -70,7 +70,7 @@ bool Analyzer::analyze() {
                         stack.pop();
 
                         if (curr_symbol != Token::NONE)
-                            context.get_attributes(curr_symbol).line_no = descriptor.get_line_no();
+                            context.get_attributes(curr_symbol, 0).line_no = descriptor.get_line_no();
                         if (curr_symbol.variable_lexeme())
                             context.set_lexeme(curr_symbol, descriptor.get_lexeme());
 

@@ -24,7 +24,8 @@ public:
 
     void remove_symbol(Token token);
 
-    SymbolAttributes &get_attributes(SyntaxSymbol symbol) const;
+    SymbolAttributes &get_attributes(SyntaxSymbol symbol,
+                                     std::size_t r_idx = 0) const;
 
     std::string get_lexeme(Token token) const;
 
@@ -47,7 +48,7 @@ private:
 
     SymbolTable symbol_table;
     std::stack<std::string> *lexemes;
-    std::stack<SymbolAttributes> *attributes;
+    std::vector<SymbolAttributes> *attributes;
 };
 
 #endif //ALGO_RULE_CONTEXT_H

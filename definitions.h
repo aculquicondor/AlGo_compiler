@@ -91,6 +91,10 @@ public:
         return value;
     }
 
+    bool variable_lexeme() const {
+        return value >= IDENT and value <= R_STRING;
+    }
+
 protected:
     int value;
 };
@@ -162,10 +166,11 @@ public:
     }
 
     bool is_terminal() const {
-        return value < FIRST_NT;
+        return value < FIRST_NON_TERMINAL;
     }
 
-    static const int FIRST_NT;
+    static const int FIRST_NON_TERMINAL;
+    static const int NUM_OF_SYMBOLS;
 
 private:
     static const std::map<std::string, int> str_to_value;

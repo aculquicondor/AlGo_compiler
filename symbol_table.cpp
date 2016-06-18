@@ -36,7 +36,7 @@ bool SymbolTable::add_symbol(const std::string &symbol) {
     if (scopes.top().find(symbol) != scopes.top().end())
         return false;
     scopes.top().insert(symbol);
-    table[symbol].push({});
+    table[symbol].push(SymbolTableRecord{});
     return true;
 }
 

@@ -31,7 +31,7 @@ Analyzer::Analyzer(LexicalAnalyzer *lexical_analyzer) : lexical_analyzer(lexical
         std::map<Token, int> row;
         getline(ss, symbol, ',');
 #ifdef DEBUG
-        assert(SyntaxSymbol(symbol) == row_count + SyntaxSymbol::FIRST_NT);
+        assert(SyntaxSymbol(symbol) == row_count + SyntaxSymbol::FIRST_NON_TERMINAL);
 #endif
         for (int token = 0; not ss.eof(); ++token) {
             getline(ss, symbol, ',');
@@ -40,7 +40,7 @@ Analyzer::Analyzer(LexicalAnalyzer *lexical_analyzer) : lexical_analyzer(lexical
                 --row[token];
 #ifdef DEBUG
                 assert(row[token] < productions.size());
-                assert(token < SyntaxSymbol::FIRST_NT);
+                assert(token < SyntaxSymbol::FIRST_NON_TERMINAL);
 #endif
             }
         }
@@ -132,7 +132,7 @@ ProductionItem Analyzer::_parse_production_item(std::string item) {
 
 
 std::vector<ProductionItem> Analyzer::_get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
-    auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NT];
+    auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NON_TERMINAL];
     auto it = row.find(descriptor.get_token());
     if (it == row.end())
         throw SyntaxError(descriptor);
@@ -143,7 +143,7 @@ std::vector<ProductionItem> Analyzer::_get_production(SyntaxSymbol symbol, Lexic
 bool Analyzer::_has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
     if (symbol.is_terminal())
         return symbol == descriptor.get_token();
-    auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NT];
+    auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NON_TERMINAL];
     return row.find(descriptor.get_token()) != row.end();
 }
 

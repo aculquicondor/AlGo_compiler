@@ -12,7 +12,7 @@ set(SOURCE_FILES main.cpp
         source_code.cpp source_code.h
         analyzer.cpp analyzer.h
         symbol_table.cpp symbol_table.h
-        symbol_table_record.h)
+        rule_context.cpp rule_context.h)
 add_executable(algo ${SOURCE_FILES})
 
 file(COPY

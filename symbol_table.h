@@ -1,0 +1,30 @@
+#ifndef ALGO_SYMBOL_TABLE_H
+#define ALGO_SYMBOL_TABLE_H
+
+#include <unordered_map>
+#include <stack>
+#include <set>
+
+#include "symbol_table_record.h"
+
+
+class SymbolTable {
+public:
+    explicit SymbolTable();
+
+    bool add_symbol(const std::string &symbol);
+
+    bool has_symbol(const std::string &symbol);
+
+    SymbolTableRecord get_record(const std::string &symbol);
+
+    void start_scope();
+
+    void end_scope();
+
+private:
+    std::unordered_map<std::string, std::stack<SymbolTableRecord>> table;
+    std::stack<std::set<std::string>> scopes;
+};
+
+#endif //ALGO_SYMBOL_TABLE_H

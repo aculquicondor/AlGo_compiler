@@ -2,10 +2,10 @@
 #include <cassert>
 #endif
 
-#include "syntax_analyzer.h"
+#include "analyzer.h"
 
 
-SyntaxAnalyzer::SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer) : lexical_analyzer(lexical_analyzer) {
+Analyzer::Analyzer(LexicalAnalyzer *lexical_analyzer) : lexical_analyzer(lexical_analyzer) {
     std::string line, symbol;
 
     std::ifstream productions_file("productions.csv");
@@ -54,7 +54,7 @@ SyntaxAnalyzer::SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer) : lexical_anal
 }
 
 
-bool SyntaxAnalyzer::analyze() {
+bool Analyzer::analyze() {
     std::stack<SyntaxSymbol> stack;
     stack.push(SyntaxSymbol::NONE);
     stack.push(SyntaxSymbol::PACKAGE);
@@ -114,7 +114,7 @@ bool SyntaxAnalyzer::analyze() {
 }
 
 
-std::vector<SyntaxSymbol> SyntaxAnalyzer::_get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
+std::vector<SyntaxSymbol> Analyzer::_get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
     auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NT];
     auto it = row.find(descriptor.get_token());
     if (it == row.end())
@@ -123,7 +123,7 @@ std::vector<SyntaxSymbol> SyntaxAnalyzer::_get_production(SyntaxSymbol symbol, L
 }
 
 
-bool SyntaxAnalyzer::_has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
+bool Analyzer::_has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
     if (symbol.is_terminal())
         return symbol == descriptor.get_token();
     auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NT];

@@ -10,7 +10,7 @@ set(SOURCE_FILES main.cpp
         lexical_descriptor.cpp lexical_descriptor.h
         lexical_analyzer.cpp lexical_analyzer.h
         source_code.cpp source_code.h
-        syntax_analyzer.cpp syntax_analyzer.h
+        analyzer.cpp analyzer.h
         symbol_table.cpp symbol_table.h
         symbol_table_record.h)
 add_executable(algo ${SOURCE_FILES})

@@ -1,5 +1,5 @@
-#ifndef ALGO_SYNTAX_ANALYZER_H
-#define ALGO_SYNTAX_ANALYZER_H
+#ifndef ALGO_ANALYZER_H
+#define ALGO_ANALYZER_H
 
 #include <fstream>
 #include <iostream>
@@ -7,9 +7,9 @@
 
 #include "lexical_analyzer.h"
 
-class SyntaxAnalyzer {
+class Analyzer {
 public:
-    SyntaxAnalyzer(LexicalAnalyzer *lexical_analyzer);
+    Analyzer(LexicalAnalyzer *lexical_analyzer);
 
     bool analyze();
 
@@ -51,4 +51,4 @@ private:
     std::string msg;
 };
 
-#endif //ALGO_SYNTAX_ANALYZER_H
+#endif //ALGO_ANALYZER_H

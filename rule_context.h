@@ -16,9 +16,13 @@ public:
 
     virtual ~RuleContext();
 
-    void add_symbol(SyntaxSymbol symbol, std::string lex);
+    void add_symbol(SyntaxSymbol symbol);
+
+    void set_lexeme(SyntaxSymbol symbol, std::string lex);
 
     void remove_symbol(SyntaxSymbol symbol);
+
+    SymbolAttributes &get_attributes(SyntaxSymbol symbol) const;
 
     std::string get_lex(SyntaxSymbol symbol) const;
 
@@ -39,6 +43,7 @@ public:
 private:
     SymbolTable symbol_table;
     std::stack<std::string> *lexemes;
+    std::stack<SymbolAttributes> *attributes;
 };
 
 #endif //ALGO_RULE_CONTEXT_H

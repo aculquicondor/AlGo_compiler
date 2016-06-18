@@ -6,12 +6,14 @@
 #include <stack>
 
 #include "lexical_analyzer.h"
+#include "rule_context.h"
 
 struct ProductionItem {
     int value;
     enum Type {
         SYMBOL,
-        RULE
+        RULE,
+        PRODUCTION_END
     } type;
 
     ProductionItem(int value, Type type=SYMBOL) : value(value), type(type) {}
@@ -25,12 +27,13 @@ public:
 
 private:
     ProductionItem _parse_production_item(std::string item);
-    std::vector<ProductionItem> _get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
+    int _get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
     bool _has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
 
     LexicalAnalyzer *lexical_analyzer;
     std::vector<std::vector<ProductionItem>> productions;
     std::vector<std::map<Token, int>> syntactic_table;
+    RuleContext context;
 };
 
 

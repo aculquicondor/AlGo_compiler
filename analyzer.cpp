@@ -5,7 +5,8 @@
 #include "analyzer.h"
 
 
-Analyzer::Analyzer(LexicalAnalyzer *lexical_analyzer) : lexical_analyzer(lexical_analyzer) {
+Analyzer::Analyzer(LexicalAnalyzer *lexical_analyzer) :
+        lexical_analyzer(lexical_analyzer), context() {
     std::string line, symbol;
 
     std::ifstream productions_file("productions.csv");
@@ -62,11 +63,15 @@ bool Analyzer::analyze() {
             SyntaxSymbol curr_symbol{stack.top().value};
 
             bool need_next_token = false;
-            try {
 
+            try {
                 if (curr_symbol.is_terminal()) {
                     if (curr_symbol == descriptor.get_token()) {
                         stack.pop();
+
+                        if (curr_symbol.variable_lexeme())
+                            context.set_lexeme(curr_symbol, descriptor.get_lexeme());
+
                         need_next_token = true;
 
                         if (descriptor.get_token() == Token::NONE)
@@ -76,10 +81,15 @@ bool Analyzer::analyze() {
                         throw SyntaxError(descriptor, curr_symbol);
                     }
                 } else {
-                    auto production = _get_production(curr_symbol, descriptor);
+                    int production_id = _get_production(curr_symbol, descriptor);
                     stack.pop();
-                    for (auto it = production.rbegin(); it != production.rend(); ++it)
+                    stack.push({production_id, ProductionItem::PRODUCTION_END});
+                    for (auto it = productions[production_id].rbegin();
+                            it != productions[production_id].rend(); ++it) {
+                        if (it->type == ProductionItem::SYMBOL)
+                            context.add_symbol(it->value);
                         stack.push(*it);
+                    }
                 }
 
             } catch (SyntaxError &err) {
@@ -106,8 +116,15 @@ bool Analyzer::analyze() {
                     }
                 }
             }
-        } else {
+        } else if (stack.top().type == ProductionItem::RULE) {
             // TODO: semantic rule execution
+            stack.pop();
+        } else {
+            int production_id = stack.top().value;
+            for (auto it = productions[production_id].rbegin(); it != productions[production_id].rend(); ++it)
+                if (it->type == ProductionItem::SYMBOL)
+                    context.remove_symbol(it->value);
+            stack.pop();
         }
     } while (not stack.empty());
 
@@ -131,12 +148,12 @@ ProductionItem Analyzer::_parse_production_item(std::string item) {
 }
 
 
-std::vector<ProductionItem> Analyzer::_get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
+int Analyzer::_get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
     auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NON_TERMINAL];
     auto it = row.find(descriptor.get_token());
     if (it == row.end())
         throw SyntaxError(descriptor);
-    return productions[it->second];
+    return it->second;
 }
 
 

@@ -95,6 +95,8 @@ public:
         return value >= IDENT and value <= R_STRING;
     }
 
+    static const int NUM_OF_TOKENS;
+
 protected:
     int value;
 };
@@ -170,10 +172,24 @@ public:
     }
 
     static const int FIRST_NON_TERMINAL;
-    static const int NUM_OF_SYMBOLS;
 
 private:
     static const std::map<std::string, int> str_to_value;
+};
+
+enum class Type {
+    VOID,
+    BOOL,
+    UINT,
+    UINT32,
+    UINT64,
+    INT,
+    INT32,
+    INT64,
+    FLOAT32,
+    FLOAT64,
+    RUNE,
+    STRING
 };
 
 #endif //ALGO_DEFINITIONS_H

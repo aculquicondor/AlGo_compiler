@@ -5,8 +5,7 @@
 #include "symbol_table.h"
 
 
-struct SymbolAttributes {
-
+struct SymbolAttributes : public SymbolTableRecord {
 };
 
 
@@ -16,25 +15,25 @@ public:
 
     virtual ~RuleContext();
 
-    void add_symbol(SyntaxSymbol symbol);
+    void add_symbol(Token token);
 
-    void set_lexeme(SyntaxSymbol symbol, std::string lex);
+    void set_lexeme(Token token, std::string lex);
 
-    void remove_symbol(SyntaxSymbol symbol);
+    void remove_symbol(Token token);
 
-    SymbolAttributes &get_attributes(SyntaxSymbol symbol) const;
+    SymbolAttributes &get_attributes(Token token) const;
 
-    std::string get_lex(SyntaxSymbol symbol) const;
+    std::string get_lexeme(Token token) const;
 
-    bool get_bool_value(SyntaxSymbol symbol) const;
+    bool get_bool_value(Token token) const;
 
-    long get_int_value(SyntaxSymbol symbol) const;
+    long get_int_value(Token token) const;
 
-    double get_float_value(SyntaxSymbol symbol) const;
+    double get_float_value(Token token) const;
 
-    char get_rune_value(SyntaxSymbol symbol) const;
+    char get_rune_value(Token token) const;
 
-    std::string get_string_value(SyntaxSymbol symbol) const;
+    std::string get_string_value(Token token) const;
 
     SymbolTable &get_symbol_table() {
         return symbol_table;

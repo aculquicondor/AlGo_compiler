@@ -86,7 +86,7 @@ bool Analyzer::analyze() {
                     stack.push({production_id, ProductionItem::PRODUCTION_END});
                     for (auto it = productions[production_id].rbegin();
                             it != productions[production_id].rend(); ++it) {
-                        if (it->type == ProductionItem::SYMBOL)
+                        if (it->type == ProductionItem::SYMBOL and SyntaxSymbol(it->value).is_terminal())
                             context.add_symbol(it->value);
                         stack.push(*it);
                     }
@@ -122,7 +122,7 @@ bool Analyzer::analyze() {
         } else {
             int production_id = stack.top().value;
             for (auto it = productions[production_id].rbegin(); it != productions[production_id].rend(); ++it)
-                if (it->type == ProductionItem::SYMBOL)
+                if (it->type == ProductionItem::SYMBOL and SyntaxSymbol(it->value).is_terminal())
                     context.remove_symbol(it->value);
             stack.pop();
         }

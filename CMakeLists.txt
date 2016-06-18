@@ -13,7 +13,7 @@ set(SOURCE_FILES main.cpp
         analyzer.cpp analyzer.h
         symbol_table.cpp symbol_table.h
         rule_context.cpp rule_context.h
-        semantic_rules.h)
+        semantic_rules.cpp semantic_rules.h)
 add_executable(algo ${SOURCE_FILES})
 
 file(COPY

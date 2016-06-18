@@ -69,6 +69,8 @@ bool Analyzer::analyze() {
                     if (curr_symbol == descriptor.get_token()) {
                         stack.pop();
 
+                        if (curr_symbol != Token::NONE)
+                            context.get_attributes(curr_symbol).line_no = descriptor.get_line_no();
                         if (curr_symbol.variable_lexeme())
                             context.set_lexeme(curr_symbol, descriptor.get_lexeme());
 
@@ -86,7 +88,7 @@ bool Analyzer::analyze() {
                     stack.push({production_id, ProductionItem::PRODUCTION_END});
                     for (auto it = productions[production_id].rbegin();
                             it != productions[production_id].rend(); ++it) {
-                        if (it->type == ProductionItem::SYMBOL and SyntaxSymbol(it->value).is_terminal())
+                        if (it->type == ProductionItem::SYMBOL)
                             context.add_symbol(it->value);
                         stack.push(*it);
                     }
@@ -100,8 +102,11 @@ bool Analyzer::analyze() {
                     break;
 
                 if (not err.get_expected()) {
-                    while (not stack.empty() and not _has_production(curr_symbol, descriptor))
+                    while (not stack.empty() and not _has_production(curr_symbol, descriptor)) {
+                        if (stack.top().type == ProductionItem::PRODUCTION_END)
+                            _clean_production(stack.top().value);
                         stack.pop();
+                    }
                 }
             }
 
@@ -117,13 +122,16 @@ bool Analyzer::analyze() {
                 }
             }
         } else if (stack.top().type == ProductionItem::RULE) {
-            // TODO: semantic rule execution
+            try {
+                semantic_rules[stack.top().value](context);
+            } catch (SemanticError &err) {
+                std::cerr << err.what() << std::endl;
+                found_errors = true;
+            }
             stack.pop();
-        } else {
-            int production_id = stack.top().value;
-            for (auto it = productions[production_id].rbegin(); it != productions[production_id].rend(); ++it)
-                if (it->type == ProductionItem::SYMBOL and SyntaxSymbol(it->value).is_terminal())
-                    context.remove_symbol(it->value);
+        } else /* ProductionItem::PRODUCTION_END */ {
+            if (stack.top().type == ProductionItem::PRODUCTION_END)
+                _clean_production(stack.top().value);
             stack.pop();
         }
     } while (not stack.empty());
@@ -162,6 +170,13 @@ bool Analyzer::_has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor
         return symbol == descriptor.get_token();
     auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NON_TERMINAL];
     return row.find(descriptor.get_token()) != row.end();
+}
+
+
+void Analyzer::_clean_production(int production_id) {
+    for (auto it = productions[production_id].rbegin(); it != productions[production_id].rend(); ++it)
+        if (it->type == ProductionItem::SYMBOL)
+            context.remove_symbol(it->value);
 }
 
 

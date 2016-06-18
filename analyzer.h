@@ -6,7 +6,8 @@
 #include <stack>
 
 #include "lexical_analyzer.h"
-#include "rule_context.h"
+#include "semantic_rules.h"
+
 
 struct ProductionItem {
     int value;
@@ -29,6 +30,7 @@ private:
     ProductionItem _parse_production_item(std::string item);
     int _get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
     bool _has_production(SyntaxSymbol symbol, LexicalDescriptor descriptor);
+    void _clean_production(int production_id);
 
     LexicalAnalyzer *lexical_analyzer;
     std::vector<std::vector<ProductionItem>> productions;

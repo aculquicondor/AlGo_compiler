@@ -2,8 +2,18 @@
 #define ALGO_SEMANTIC_RULES_H
 
 #include <exception>
+#include <functional>
 #include <sstream>
 #include <string>
+#include <vector>
+
+#include "rule_context.h"
+
+
+typedef std::function<void(RuleContext &)> SemanticRule;
+
+
+extern const std::vector<SemanticRule> semantic_rules;
 
 
 class SemanticError : public std::exception {

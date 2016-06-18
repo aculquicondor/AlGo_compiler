@@ -172,6 +172,7 @@ public:
     }
 
     static const int FIRST_NON_TERMINAL;
+    static const int NUM_OF_SYMBOLS;
 
 private:
     static const std::map<std::string, int> str_to_value;

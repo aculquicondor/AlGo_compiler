@@ -1,9 +1,10 @@
 #include "definitions.h"
 
 
-const int SyntaxSymbol::FIRST_NON_TERMINAL = PACKAGE;
-
 const int Token::NUM_OF_TOKENS = SyntaxSymbol::FIRST_NON_TERMINAL;
+
+const int SyntaxSymbol::FIRST_NON_TERMINAL = PACKAGE;
+const int SyntaxSymbol::NUM_OF_SYMBOLS = FOR_CONSTpp + 1;
 
 
 const std::map<std::string, int> SyntaxSymbol::str_to_value{

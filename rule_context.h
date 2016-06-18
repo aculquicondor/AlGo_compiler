@@ -1,11 +1,14 @@
 #ifndef ALGO_RULE_CONTEXT_H
 #define ALGO_RULE_CONTEXT_H
 
+#include <cmath>
+
 #include "definitions.h"
 #include "symbol_table.h"
 
 
 struct SymbolAttributes : public SymbolTableRecord {
+    std::size_t line_no;
 };
 
 
@@ -21,7 +24,7 @@ public:
 
     void remove_symbol(Token token);
 
-    SymbolAttributes &get_attributes(Token token) const;
+    SymbolAttributes &get_attributes(SyntaxSymbol symbol) const;
 
     std::string get_lexeme(Token token) const;
 
@@ -40,6 +43,8 @@ public:
     }
 
 private:
+    char _parse_rune(std::string lex, std::size_t &p) const;
+
     SymbolTable symbol_table;
     std::stack<std::string> *lexemes;
     std::stack<SymbolAttributes> *attributes;

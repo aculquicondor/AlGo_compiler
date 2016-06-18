@@ -37,7 +37,7 @@ public:
 
     bool has_symbol(const std::string &symbol);
 
-    SymbolTableRecord get_record(const std::string &symbol);
+    SymbolTableRecord &get_record(const std::string &symbol);
 
     void start_scope();
 

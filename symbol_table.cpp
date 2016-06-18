@@ -27,7 +27,7 @@ bool SymbolTable::has_symbol(const std::string &symbol) {
 }
 
 
-SymbolTableRecord SymbolTable::get_record(const std::string &symbol) {
+SymbolTableRecord &SymbolTable::get_record(const std::string &symbol) {
     return table[symbol].top();
 }
 

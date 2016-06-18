@@ -12,16 +12,12 @@ Analyzer::Analyzer(LexicalAnalyzer *lexical_analyzer) : lexical_analyzer(lexical
     getline(productions_file, line);
     while (line.size()) {
         std::stringstream ss(line);
-        std::vector<SyntaxSymbol> production;
+        std::vector<ProductionItem> production;
         getline(ss, symbol, ',');
         while (not ss.eof()) {
             getline(ss, symbol, ',');
-            if (symbol.size()) {
-                production.push_back(symbol);
-#ifdef DEBUG
-                assert(production.back() != SyntaxSymbol::NONE);
-#endif
-            }
+            if (symbol.size())
+                production.push_back(_parse_production_item(symbol));
         }
         productions.push_back(production);
         getline(productions_file, line);
@@ -55,58 +51,63 @@ Analyzer::Analyzer(LexicalAnalyzer *lexical_analyzer) : lexical_analyzer(lexical
 
 
 bool Analyzer::analyze() {
-    std::stack<SyntaxSymbol> stack;
-    stack.push(SyntaxSymbol::NONE);
-    stack.push(SyntaxSymbol::PACKAGE);
+    std::stack<ProductionItem> stack;
+    stack.push({SyntaxSymbol::NONE});
+    stack.push({SyntaxSymbol::PACKAGE});
 
     LexicalDescriptor descriptor = lexical_analyzer->next();
     bool found_errors = false;
     do {
-        bool need_next_token = false;
-        try {
+        if (stack.top().type == ProductionItem::SYMBOL) {
+            SyntaxSymbol curr_symbol{stack.top().value};
 
-            if (stack.top().is_terminal()) {
-                if (stack.top() == descriptor.get_token()) {
-                    stack.pop();
-                    need_next_token = true;
+            bool need_next_token = false;
+            try {
 
-                    if (descriptor.get_token() == Token::NONE)
-                        break;
+                if (curr_symbol.is_terminal()) {
+                    if (curr_symbol == descriptor.get_token()) {
+                        stack.pop();
+                        need_next_token = true;
+
+                        if (descriptor.get_token() == Token::NONE)
+                            break;
+                    } else {
+                        stack.pop();
+                        throw SyntaxError(descriptor, curr_symbol);
+                    }
                 } else {
-                    SyntaxSymbol expected = stack.top();
+                    auto production = _get_production(curr_symbol, descriptor);
                     stack.pop();
-                    throw SyntaxError(descriptor, expected);
+                    for (auto it = production.rbegin(); it != production.rend(); ++it)
+                        stack.push(*it);
                 }
-            } else {
-                auto production = _get_production(stack.top(), descriptor);
-                stack.pop();
-                for (auto it = production.rbegin(); it != production.rend(); ++it)
-                    stack.push(*it);
-            }
 
-        } catch (SyntaxError &err) {
-            std::cerr << err.what() << std::endl;
-            found_errors = true;
+            } catch (SyntaxError &err) {
+                std::cerr << err.what() << std::endl;
+                found_errors = true;
 
-            if (descriptor.get_token() == Token::NONE)
-                break;
-
-            if (not err.get_expected()) {
-                while (not stack.empty() and not _has_production(stack.top(), descriptor))
-                    stack.pop();
-            }
-        }
-
-        if (need_next_token) {
-            while (true) {
-                try {
-                    descriptor = lexical_analyzer->next();
+                if (descriptor.get_token() == Token::NONE)
                     break;
-                } catch (LexicalError &err) {
-                    std::cerr << err.what() << std::endl;
-                    found_errors = true;
+
+                if (not err.get_expected()) {
+                    while (not stack.empty() and not _has_production(curr_symbol, descriptor))
+                        stack.pop();
                 }
             }
+
+            if (need_next_token) {
+                while (true) {
+                    try {
+                        descriptor = lexical_analyzer->next();
+                        break;
+                    } catch (LexicalError &err) {
+                        std::cerr << err.what() << std::endl;
+                        found_errors = true;
+                    }
+                }
+            }
+        } else {
+            // TODO: semantic rule execution
         }
     } while (not stack.empty());
 
@@ -114,7 +115,23 @@ bool Analyzer::analyze() {
 }
 
 
-std::vector<SyntaxSymbol> Analyzer::_get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
+ProductionItem Analyzer::_parse_production_item(std::string item) {
+    if (item[0] >= '0' and item[0] <= '9') {
+        std::stringstream ss(item);
+        int value;
+        ss >> value;
+        return {value, ProductionItem::RULE};
+    } else {
+        SyntaxSymbol symbol(item);
+#ifdef DEBUG
+        assert(symbol != SyntaxSymbol::NONE);
+#endif
+        return {symbol, ProductionItem::SYMBOL};
+    }
+}
+
+
+std::vector<ProductionItem> Analyzer::_get_production(SyntaxSymbol symbol, LexicalDescriptor descriptor) {
     auto &row = syntactic_table[symbol - SyntaxSymbol::FIRST_NT];
     auto it = row.find(descriptor.get_token());
     if (it == row.end())

@@ -17,7 +17,7 @@ struct SymbolTableRecord {
         std::vector<std::size_t> dimension;
     };
 
-    bool _const;
+    bool is_const;
     Type type;
     long int_value;
     double float_value;

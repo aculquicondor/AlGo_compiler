@@ -123,7 +123,7 @@ bool Analyzer::analyze() {
             }
         } else if (stack.top().type == ProductionItem::RULE) {
             try {
-                semantic_rules[stack.top().value](context);
+                semantic_rules[stack.top().value](std::ref(context));
             } catch (SemanticError &err) {
                 std::cerr << err.what() << std::endl;
                 found_errors = true;

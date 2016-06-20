@@ -1,90 +1,84 @@
 #include "semantic_rules.h"
+#include <iostream>
 
+
+void declaration(RuleContext &context, bool is_const) {
+    std::cout << &context << std::endl;
+    std::string variable = context.get_lexeme(Token::IDENT);
+    if (not context.get_symbol_table().add_symbol(variable)) {
+        throw SemanticError("Redeclaration of \"" + variable + "\"",
+                            context.get_attributes(Token::IDENT).line_no);
+    }
+    auto &record = context.get_symbol_table().get_record(variable);
+    record.type = context.get_attributes(SyntaxSymbol::TYPEp).type;
+    record.dimension = context.get_attributes(SyntaxSymbol::TYPEp).dimension;
+    record.is_const = is_const;
+}
+
+void set_type(RuleContext &context, Type type) {
+    context.get_attributes(SyntaxSymbol::TYPE).type = type;
+}
+
+void set_int_value(RuleContext &context, Token token) {
+    context.get_attributes(SyntaxSymbol::INT_LIT).int_value =
+            context.get_int_value(token);
+}
+
+void copy_back(RuleContext &context, SyntaxSymbol symbol) {
+    context.get_attributes(symbol, 1) =
+            context.get_attributes(symbol);
+}
+
+void copy_back_2(RuleContext &context, SyntaxSymbol to_symbol, SyntaxSymbol from_symbol) {
+    context.get_attributes(to_symbol) =
+            context.get_attributes(from_symbol);
+}
 
 const std::vector<SemanticRule> semantic_rules = {
+        // 0: const declaration
+        std::bind(declaration, std::placeholders::_1, true),
 
-    [](RuleContext &context) { // 0: Set type and dimension in constant declaration
-        std::string variable = context.get_lexeme(Token::IDENT);
-        if (not context.get_symbol_table().add_symbol(variable)) {
-            throw SemanticError("Redeclaration of \"" + variable + "\"",
-                                context.get_attributes(Token::IDENT).line_no);
-        }
-        auto &record = context.get_symbol_table().get_record(variable);
-        record.type = context.get_attributes(SyntaxSymbol::TYPEp).type;
-        record.dimension = context.get_attributes(SyntaxSymbol::TYPEp).dimension;
-        record._const = true;
-    },
+        // 1: Set bool type
+        std::bind(set_type, std::placeholders::_1, Type::BOOL),
+        // 2: Set int type
+        std::bind(set_type, std::placeholders::_1, Type::INT),
+        // 3: Set int32 type
+        std::bind(set_type, std::placeholders::_1, Type::INT32),
+        // 4: Set int64 type
+        std::bind(set_type, std::placeholders::_1, Type::INT64),
+        // 5: Set uint type
+        std::bind(set_type, std::placeholders::_1, Type::UINT),
+        // 6: Set uint32 type
+        std::bind(set_type, std::placeholders::_1, Type::UINT32),
+        // 7: Set uint64 type
+        std::bind(set_type, std::placeholders::_1, Type::UINT64),
+        // 8: Set float32 type
+        std::bind(set_type, std::placeholders::_1, Type::FLOAT32),
+        // 9: Set float64 type
+        std::bind(set_type, std::placeholders::_1, Type::FLOAT64),
+        // 10: set rune type
+        std::bind(set_type, std::placeholders::_1, Type::RUNE),
+        // 11: set string type
+        std::bind(set_type, std::placeholders::_1, Type::STRING),
 
-    [](RuleContext &context) { // 1: Setting bool type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::BOOL;
-    },
-    [](RuleContext &context) { // 2: Setting int type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::INT;
-    },
-    [](RuleContext &context) { // 3: Setting int32 type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::INT32;
-    },
-    [](RuleContext &context) { // 4: Setting int64 type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::INT64;
-    },
-    [](RuleContext &context) { // 5: Setting uint type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::UINT;
-    },
-    [](RuleContext &context) { // 6: Setting uint32 type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::UINT32;
-    },
-    [](RuleContext &context) { // 7: Setting uint64 type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::UINT64;
-    },
-    [](RuleContext &context) { // 8: Setting float32 type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::FLOAT32;
-    },
-    [](RuleContext &context) { // 9: Setting float64 type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::FLOAT64;
-    },
-    [](RuleContext &context) { // 10: Setting rune type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::RUNE;
-    },
-    [](RuleContext &context) { // 11: Setting string type
-        context.get_attributes(SyntaxSymbol::TYPE).type = Type::STRING;
-    },
+        // 12: get int value from decimal
+        std::bind(set_int_value, std::placeholders::_1, Token::DEC),
+        // 13: get int value from decimal
+        std::bind(set_int_value, std::placeholders::_1, Token::OCTAL),
+        // 14: get int value from decimal
+        std::bind(set_int_value, std::placeholders::_1, Token::HEXADEC),
 
-    [](RuleContext &context) { // 12: get int value from decimal
-        context.get_attributes(SyntaxSymbol::INT_LIT).int_value =
-                context.get_int_value(Token::DEC);
-    },
-    [](RuleContext &context) { // 13: get int value from octal
-        context.get_attributes(SyntaxSymbol::INT_LIT).int_value =
-                context.get_int_value(Token::OCTAL);
-    },
-    [](RuleContext &context) { // 14: get int value from octal
-        context.get_attributes(SyntaxSymbol::INT_LIT).int_value =
-                context.get_int_value(Token::HEXADEC);
-    },
+        [](RuleContext &context) { // 15: forward-transmit TYPEp attributes
+            auto &dimension = context.get_attributes(SyntaxSymbol::TYPEp).dimension;
+            dimension = context.get_attributes(SyntaxSymbol::TYPEp, 1).dimension;
+            dimension.push_back((std::size_t)context.get_attributes(SyntaxSymbol::INT_LIT).int_value);
+        },
+        // 16: copy back TYPEp attributes
+        std::bind(copy_back, std::placeholders::_1, SyntaxSymbol::TYPEp),
+        // 17: copy back type from TYPE to TYPEp
+        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::TYPEp, SyntaxSymbol::TYPE),
 
-    [](RuleContext &context) { // 15: forward-transmit TYPEp attributes
-        auto &dimension = context.get_attributes(SyntaxSymbol::TYPEp).dimension;
-        dimension = context.get_attributes(SyntaxSymbol::TYPEp, 1).dimension;
-        dimension.push_back((std::size_t)context.get_attributes(SyntaxSymbol::INT_LIT).int_value);
-    },
-    [](RuleContext &context) { // 16: backward-transmit TYPEp attributes
-        context.get_attributes(SyntaxSymbol::TYPEp, 1) =
-                 context.get_attributes(SyntaxSymbol::TYPEp);
-    },
-    [](RuleContext &context) { // 17: backward-transmit type
-        context.get_attributes(SyntaxSymbol::TYPEp).type =
-                context.get_attributes(SyntaxSymbol::TYPE).type;
-    },
+        // 18: variable declaration
+        std::bind(declaration, std::placeholders::_1, false),
 
-    [](RuleContext &context) { // 18: Set type and dimension in variable declaration
-        std::string variable = context.get_lexeme(Token::IDENT);
-        if (not context.get_symbol_table().add_symbol(variable)) {
-            throw SemanticError("Redeclaration of \"" + variable + "\"",
-                                context.get_attributes(Token::IDENT).line_no);
-        }
-        auto &record = context.get_symbol_table().get_record(variable);
-        record.type = context.get_attributes(SyntaxSymbol::TYPEp).type;
-        record.dimension = context.get_attributes(SyntaxSymbol::TYPEp).dimension;
-        record._const = false;
-    },
 };

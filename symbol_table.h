@@ -10,22 +10,23 @@
 
 
 struct SymbolTableRecord {
-    explicit SymbolTableRecord(Type type=Type::VOID) : type(type) { }
+    explicit SymbolTableRecord(Type type=Type::VOID) :
+            type_dim(TypeDim{type}) {
+    }
 
-    struct Param {
+    struct TypeDim {
         Type type;
         std::vector<std::size_t> dimension;
     };
 
     bool is_const;
-    Type type;
+    TypeDim type_dim;
     long int_value;
     double float_value;
     char rune_value;
     std::string str_value;
     std::size_t address;
-    std::vector<std::size_t> dimension;
-    std::vector<Param> params;
+    std::vector<TypeDim> params;
 };
 
 

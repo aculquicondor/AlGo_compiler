@@ -3,20 +3,18 @@
 
 
 void declaration(RuleContext &context, bool is_const) {
-    std::cout << &context << std::endl;
     std::string variable = context.get_lexeme(Token::IDENT);
     if (not context.get_symbol_table().add_symbol(variable)) {
         throw SemanticError("Redeclaration of \"" + variable + "\"",
                             context.get_attributes(Token::IDENT).line_no);
     }
     auto &record = context.get_symbol_table().get_record(variable);
-    record.type = context.get_attributes(SyntaxSymbol::TYPEp).type;
-    record.dimension = context.get_attributes(SyntaxSymbol::TYPEp).dimension;
+    record.type_dim = context.get_attributes(SyntaxSymbol::TYPEp).type_dim;
     record.is_const = is_const;
 }
 
 void set_type(RuleContext &context, Type type) {
-    context.get_attributes(SyntaxSymbol::TYPE).type = type;
+    context.get_attributes(SyntaxSymbol::TYPE).type_dim.type = type;
 }
 
 void set_int_value(RuleContext &context, Token token) {
@@ -69,9 +67,9 @@ const std::vector<SemanticRule> semantic_rules = {
         std::bind(set_int_value, std::placeholders::_1, Token::HEXADEC),
 
         [](RuleContext &context) { // 15: forward-transmit TYPEp attributes
-            auto &dimension = context.get_attributes(SyntaxSymbol::TYPEp).dimension;
-            dimension = context.get_attributes(SyntaxSymbol::TYPEp, 1).dimension;
-            dimension.push_back((std::size_t)context.get_attributes(SyntaxSymbol::INT_LIT).int_value);
+            auto &t = context.get_attributes(SyntaxSymbol::TYPEp).type_dim;
+            t.dimension = context.get_attributes(SyntaxSymbol::TYPEp, 1).type_dim.dimension;
+            t.dimension.push_back((std::size_t)context.get_attributes(SyntaxSymbol::INT_LIT).int_value);
         },
         // 16: copy back TYPEp attributes
         std::bind(copy_back, std::placeholders::_1, SyntaxSymbol::TYPEp),

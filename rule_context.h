@@ -9,6 +9,7 @@
 
 struct SymbolAttributes : public SymbolTableRecord {
     std::size_t line_no;
+    TypeDim return_type_dim;
 };
 
 

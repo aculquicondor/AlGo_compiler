@@ -44,6 +44,27 @@ void forward_add_params(RuleContext &context, SyntaxSymbol symbol, std::size_t r
     params.push_back(context.get_attributes(SyntaxSymbol::TYPEp).type_dim);
 }
 
+void forward_return_loop_info(RuleContext &context, SyntaxSymbol symbol) {
+    auto &to_attributes = context.get_attributes(symbol);
+    const auto &from_attributes = context.get_attributes(symbol, 1);
+    to_attributes.return_type_dim = from_attributes.return_type_dim;
+    to_attributes.in_loop = from_attributes.in_loop;
+}
+
+void forward_return_loop_info_2(RuleContext &context, SyntaxSymbol to_symbol, SyntaxSymbol from_symbol) {
+    auto &to_attributes = context.get_attributes(to_symbol);
+    const auto &from_attributes = context.get_attributes(from_symbol);
+    to_attributes.return_type_dim = from_attributes.return_type_dim;
+    to_attributes.in_loop = from_attributes.in_loop;
+}
+
+void verify_inside_loop(RuleContext &context, SyntaxSymbol symbol) {
+    if (not context.get_attributes(SyntaxSymbol::BLOCK_UNIT).in_loop) {
+        throw SemanticError("Statement not inside a loop",
+                            context.get_attributes(symbol).line_no);
+    }
+}
+
 
 const std::vector<SemanticRule> semantic_rules = {
         // 0: const declaration
@@ -108,7 +129,9 @@ const std::vector<SemanticRule> semantic_rules = {
             record.type_dim = context.get_attributes(SyntaxSymbol::FUNC_DECLp).type_dim;
             record.params = context.get_attributes(SyntaxSymbol::PARAM_LIST).params;
 
-            context.get_attributes(SyntaxSymbol::BLOCK).return_type_dim = record.type_dim;
+            auto &attributes = context.get_attributes(SyntaxSymbol::BLOCK);
+            attributes.return_type_dim = record.type_dim;
+            attributes.in_loop = false;
         },
 
         // 22: end scope
@@ -119,9 +142,50 @@ const std::vector<SemanticRule> semantic_rules = {
         // 23: forward & add params from PARAM_LIST
         std::bind(forward_add_params, std::placeholders::_1, SyntaxSymbol::PARAM_LIST, 0),
         // 24: forward/copy-back params
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::PARAM_LIST, SyntaxSymbol::PARAM_LISTp),
+        std::bind(copy_back_2, std::placeholders::_1,
+                  SyntaxSymbol::PARAM_LIST, SyntaxSymbol::PARAM_LISTp),
         // 25: forward & add params from PARAM_LISTp
         std::bind(forward_add_params, std::placeholders::_1, SyntaxSymbol::PARAM_LISTp, 1),
         // 26 copy-back params
         std::bind(copy_back, std::placeholders::_1, SyntaxSymbol::PARAM_LISTp),
+
+        // 27: forward return and loop information
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::BLOCK_CONTS, SyntaxSymbol::BLOCK),
+        // 28
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::BLOCK_UNIT, SyntaxSymbol::BLOCK_CONTS),
+        // 29
+        std::bind(forward_return_loop_info, std::placeholders::_1, SyntaxSymbol::BLOCK_CONTS),
+        // 30
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::IF_CONST, SyntaxSymbol::BLOCK_UNIT),
+        // 31
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::BLOCK, SyntaxSymbol::IF_CONST),
+        // 32
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::FOR_CONST, SyntaxSymbol::BLOCK_UNIT),
+        // 33: forward return and set loop information
+        [](RuleContext &context) {
+            auto &attributes = context.get_attributes(SyntaxSymbol::BLOCK);
+            attributes.in_loop = true;
+            attributes.return_type_dim = context.get_attributes(SyntaxSymbol::FOR_CONST).type_dim;
+        },
+        // 34: verify continue inside loop
+        std::bind(verify_inside_loop, std::placeholders::_1, Token::CONTINUE),
+        // 35: verify break inside loop
+        std::bind(verify_inside_loop, std::placeholders::_1, Token::BREAK),
+        // 36: forward return and loop information
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::IF_CONSTp, SyntaxSymbol::IF_CONST),
+        // 37
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::ELSEp, SyntaxSymbol::IF_CONSTp),
+        // 38
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::IF_CONST, SyntaxSymbol::ELSEp),
+        // 39
+        std::bind(forward_return_loop_info_2, std::placeholders::_1,
+                  SyntaxSymbol::BLOCK, SyntaxSymbol::ELSEp),
 };

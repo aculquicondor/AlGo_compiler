@@ -188,4 +188,9 @@ const std::vector<SemanticRule> semantic_rules = {
         // 39
         std::bind(forward_return_loop_info_2, std::placeholders::_1,
                   SyntaxSymbol::BLOCK, SyntaxSymbol::ELSEp),
+
+        // 40: create scope
+        [](RuleContext &context) {
+            context.get_symbol_table().start_scope();
+        },
 };

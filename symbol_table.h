@@ -20,12 +20,13 @@ struct SymbolTableRecord {
     };
 
     bool is_const;
+    bool is_function;
     TypeDim type_dim;
+    bool bool_value;
     long int_value;
     double float_value;
     char rune_value;
     std::string str_value;
-    std::size_t address;
     std::vector<TypeDim> params;
 };
 

@@ -13,7 +13,7 @@ void SymbolTable::start_scope() {
 
 void SymbolTable::end_scope() {
     for (std::string symbol : scopes.top()) {
-        auto symbol_stack = table[symbol];
+        auto &symbol_stack = table[symbol];
         symbol_stack.pop();
         if (symbol_stack.empty())
             table.erase(symbol);

@@ -11,6 +11,10 @@ struct SymbolAttributes : public SymbolTableRecord {
     std::size_t line_no;
     TypeDim return_type_dim;
     bool in_loop;
+    bool is_lvalue;
+    bool is_literal;
+    std::string identifier;
+    Operation operation;
 };
 
 

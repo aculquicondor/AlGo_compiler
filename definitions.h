@@ -193,4 +193,31 @@ enum class Type {
     STRING
 };
 
+enum class Operation {
+    NONE,
+    EQ,
+    NEQ,
+    LT,
+    GT,
+    LTE,
+    GTE,
+    ADD,
+    SUBS,
+    MULT,
+    DIV,
+    MOD,
+    BW_AND,
+    BW_AND_NOT,
+    BW_OR,
+    BW_XOR,
+    BW_NEG,
+    L_SHIFT,
+    R_SHIFT,
+    INCR,
+    DECR,
+    OR,
+    AND,
+    NOT
+};
+
 #endif //ALGO_DEFINITIONS_H

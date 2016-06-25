@@ -65,6 +65,53 @@ void verify_inside_loop(RuleContext &context, SyntaxSymbol symbol) {
     }
 }
 
+bool equal_dimension(std::vector<std::size_t> d1, std::vector<std::size_t> d2) {
+    if (d1.size() != d2.size())
+        return false;
+    for (std::size_t i = 0; i < d1.size(); ++i)
+        if (d1[i] != d2[i])
+            return false;
+    return true;
+}
+
+bool is_int_type(Type type) {
+    return type >= Type::UINT and type <= Type::INT64;
+}
+
+bool is_float_type(Type type) {
+    return type == Type::FLOAT32 or type == Type::FLOAT64;
+}
+
+SymbolAttributes check_types(const SymbolAttributes &op1, const SymbolAttributes &op2, std::size_t line_no) {
+    SymbolAttributes attributes;
+    SemanticError error("Types mismatch", line_no);
+    if (op1.is_literal == op2.is_literal) {
+        if (op1.type_dim.type != op2.type_dim.type or
+                not equal_dimension(op1.type_dim.dimension, op2.type_dim.dimension))
+            throw error;
+        attributes.is_literal = op1.is_literal;
+    } else {
+        const SymbolAttributes &literal = op1.is_literal ? op1 : op2;
+        const SymbolAttributes &variable = op1.is_literal ? op2 : op1;
+        if (literal.type_dim.type == Type::INT64 and not is_int_type(variable.type_dim.type))
+            throw error;
+        else if (literal.type_dim.type == Type::FLOAT64 and not is_float_type(variable.type_dim.type))
+            throw error;
+        else if (literal.type_dim.type != variable.type_dim.type)
+            throw error;
+        attributes.is_literal = false;
+    }
+    attributes.type_dim = op1.type_dim;
+    attributes.is_const = op1.is_const and op2.is_const;
+    return attributes;
+}
+
+void set_operation(RuleContext &context, SyntaxSymbol from, SyntaxSymbol to, Operation operation) {
+    auto &attributes = context.get_attributes(to);
+    attributes.operation = operation;
+    attributes.line_no = context.get_attributes(from).line_no;
+}
+
 
 const std::vector<SemanticRule> semantic_rules = {
         // 0: const declaration
@@ -193,4 +240,84 @@ const std::vector<SemanticRule> semantic_rules = {
         [](RuleContext &context) {
             context.get_symbol_table().start_scope();
         },
+
+        // 41: forward l_value and identifier
+        [](RuleContext &context) {
+            const auto &lv1expr_attributes = context.get_attributes(SyntaxSymbol::LV1EXPR);
+            if (lv1expr_attributes.is_lvalue) {
+                auto &exprp_attributes = context.get_attributes(SyntaxSymbol::EXPRp);
+                exprp_attributes.is_lvalue = true;
+                exprp_attributes.identifier = lv1expr_attributes.identifier;
+                exprp_attributes.type_dim = lv1expr_attributes.type_dim;
+                exprp_attributes.is_const = lv1expr_attributes.is_const;
+            }
+        },
+
+        // 42: assignment
+        [](RuleContext &context) {
+            const auto &exprp_attributes = context.get_attributes(SyntaxSymbol::EXPRp);
+            const auto &assign_oper_attributes = context.get_attributes(SyntaxSymbol::ASSIGN_OPER);
+            if (not exprp_attributes.is_lvalue)
+                throw SemanticError("Expression not an lvalue",
+                                    assign_oper_attributes.line_no);
+            if (exprp_attributes.is_const)
+                throw SemanticError("Can't modify a const value", assign_oper_attributes.line_no);
+            if (assign_oper_attributes.operation != Operation::NONE and
+                    not exprp_attributes.type_dim.dimension.empty())
+                throw SemanticError("Can't use operator in multidimensional variable",
+                                    assign_oper_attributes.line_no);
+            check_types(exprp_attributes, context.get_attributes(SyntaxSymbol::EXPR), assign_oper_attributes.line_no);
+            if (exprp_attributes.type_dim.type == Type::STRING and
+                    assign_oper_attributes.operation > Operation::ADD)
+                throw SemanticError("Can't user operator in string variable", assign_oper_attributes.line_no);
+            if (exprp_attributes.type_dim.type == Type::RUNE and
+                    assign_oper_attributes.operation >= Operation::ADD)
+                throw SemanticError("Can't user operator in rune variable", assign_oper_attributes.line_no);
+        },
+
+        // 43: const declaration assignment
+        [](RuleContext &context) {
+            SymbolAttributes attributes;
+            attributes.type_dim = context.get_symbol_table().get_record(context.get_lexeme(Token::IDENT)).type_dim;
+            attributes.is_const = true;
+            check_types(attributes, context.get_attributes(SyntaxSymbol::EXPR),
+                        context.get_attributes(SyntaxSymbol::ASSIGN).line_no);
+        },
+
+        // 44: set operation
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::ASSIGN, SyntaxSymbol::ASSIGN_OPER, Operation::NONE),
+        // 45
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_PLUS, SyntaxSymbol::ASSIGN_OPER, Operation::ADD),
+        // 46
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_MINUS, SyntaxSymbol::ASSIGN_OPER, Operation::SUBS),
+        // 47
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_TIMES, SyntaxSymbol::ASSIGN_OPER, Operation::MULT),
+        // 48
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_DIV, SyntaxSymbol::ASSIGN_OPER, Operation::DIV),
+        // 49
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_MOD, SyntaxSymbol::ASSIGN_OPER, Operation::MOD),
+        // 50
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_BW_AND, SyntaxSymbol::ASSIGN_OPER, Operation::BW_AND),
+        // 51
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_BW_AND_NOT, SyntaxSymbol::ASSIGN_OPER, Operation::BW_AND_NOT),
+        // 52
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_BW_OR, SyntaxSymbol::ASSIGN_OPER, Operation::BW_OR),
+        // 53
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_BW_XOR, SyntaxSymbol::ASSIGN_OPER, Operation::BW_XOR),
+        // 54
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_L_SHIFT, SyntaxSymbol::ASSIGN_OPER, Operation::L_SHIFT),
+        // 55
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::A_R_SHIFT, SyntaxSymbol::ASSIGN_OPER, Operation::R_SHIFT),
 };

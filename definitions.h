@@ -217,7 +217,7 @@ enum class Operation {
     DECR,
     OR,
     AND,
-    NOT
+    NOT,
 };
 
 #endif //ALGO_DEFINITIONS_H

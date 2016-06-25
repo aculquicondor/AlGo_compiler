@@ -51,9 +51,9 @@ void forward_return_loop_info(RuleContext &context, SyntaxSymbol symbol) {
     to_attributes.in_loop = from_attributes.in_loop;
 }
 
-void forward_return_loop_info_2(RuleContext &context, SyntaxSymbol to_symbol, SyntaxSymbol from_symbol) {
-    auto &to_attributes = context.get_attributes(to_symbol);
-    const auto &from_attributes = context.get_attributes(from_symbol);
+void forward_return_loop_info_2(RuleContext &context, SyntaxSymbol to, SyntaxSymbol from) {
+    auto &to_attributes = context.get_attributes(to);
+    const auto &from_attributes = context.get_attributes(from);
     to_attributes.return_type_dim = from_attributes.return_type_dim;
     to_attributes.in_loop = from_attributes.in_loop;
 }
@@ -101,15 +101,47 @@ SymbolAttributes check_types(const SymbolAttributes &op1, const SymbolAttributes
             throw error;
         attributes.is_literal = false;
     }
-    attributes.type_dim = op1.type_dim;
     attributes.is_const = op1.is_const and op2.is_const;
     return attributes;
 }
 
-void set_operation(RuleContext &context, SyntaxSymbol from, SyntaxSymbol to, Operation operation) {
+void set_operation(RuleContext &context, SyntaxSymbol to, SyntaxSymbol from, Operation operation) {
     auto &attributes = context.get_attributes(to);
     attributes.operation = operation;
     attributes.line_no = context.get_attributes(from).line_no;
+}
+
+void pass_operation(RuleContext &context, SyntaxSymbol to, SyntaxSymbol from) {
+    auto &to_attributes = context.get_attributes(to);
+    const auto &from_attributes = context.get_attributes(from);
+    to_attributes.operation = from_attributes.operation;
+    to_attributes.line_no = from_attributes.line_no;
+}
+
+void check_operation_for_typedim(SymbolAttributes::TypeDim type_dim, Operation operation, std::size_t line_no) {
+    if (type_dim.type == Type::STRING and operation > Operation::ADD)
+        throw SemanticError("Can't use operator for strings", line_no);
+    if (type_dim.type == Type::RUNE and operation >= Operation::ADD)
+        throw SemanticError("Can't use operator for runes", line_no);
+    if (not type_dim.dimension.empty() and operation > Operation::NONE)
+        throw SemanticError("Can't use operator for arrays", line_no);
+    if (is_float_type(type_dim.type) and operation >= Operation ::MOD)
+        throw SemanticError("Can't use operator for floats", line_no);
+    if (is_int_type(type_dim.type) and operation >= Operation ::OR)
+        throw SemanticError("Can't use operator for integers", line_no);
+}
+
+void operate(RuleContext &context, SyntaxSymbol left, SyntaxSymbol right) {
+    const auto &left_attributes = context.get_attributes(left);
+    if (context.get_attributes(left).operation == Operation::NONE)
+        return;
+    auto &right_attributes = context.get_attributes(right);
+    check_operation_for_typedim(left_attributes.type_dim, left_attributes.operation, left_attributes.line_no);
+    SymbolAttributes result = check_types(left_attributes, right_attributes, left_attributes.line_no);
+    right_attributes.is_const = result.is_const;
+    right_attributes.is_literal = result.is_literal;
+    if (left_attributes.operation < Operation::ADD)
+        right_attributes.type_dim = {Type::BOOL, {}};
 }
 
 
@@ -266,58 +298,66 @@ const std::vector<SemanticRule> semantic_rules = {
                     not exprp_attributes.type_dim.dimension.empty())
                 throw SemanticError("Can't use operator in multidimensional variable",
                                     assign_oper_attributes.line_no);
-            check_types(exprp_attributes, context.get_attributes(SyntaxSymbol::EXPR), assign_oper_attributes.line_no);
-            if (exprp_attributes.type_dim.type == Type::STRING and
-                    assign_oper_attributes.operation > Operation::ADD)
-                throw SemanticError("Can't user operator in string variable", assign_oper_attributes.line_no);
-            if (exprp_attributes.type_dim.type == Type::RUNE and
-                    assign_oper_attributes.operation >= Operation::ADD)
-                throw SemanticError("Can't user operator in rune variable", assign_oper_attributes.line_no);
+            check_operation_for_typedim(exprp_attributes.type_dim, assign_oper_attributes.operation,
+                                        assign_oper_attributes.line_no);
+            check_types(exprp_attributes, context.get_attributes(SyntaxSymbol::EXPR),
+                        assign_oper_attributes.line_no);
         },
 
         // 43: const declaration assignment
         [](RuleContext &context) {
             SymbolAttributes attributes;
             attributes.type_dim = context.get_symbol_table().get_record(context.get_lexeme(Token::IDENT)).type_dim;
-            attributes.is_const = true;
             check_types(attributes, context.get_attributes(SyntaxSymbol::EXPR),
                         context.get_attributes(SyntaxSymbol::ASSIGN).line_no);
         },
 
         // 44: set operation
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::ASSIGN, SyntaxSymbol::ASSIGN_OPER, Operation::NONE),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::ASSIGN, Operation::NONE),
         // 45
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_PLUS, SyntaxSymbol::ASSIGN_OPER, Operation::ADD),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_PLUS, Operation::ADD),
         // 46
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_MINUS, SyntaxSymbol::ASSIGN_OPER, Operation::SUBS),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_MINUS, Operation::SUBS),
         // 47
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_TIMES, SyntaxSymbol::ASSIGN_OPER, Operation::MULT),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_TIMES, Operation::MULT),
         // 48
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_DIV, SyntaxSymbol::ASSIGN_OPER, Operation::DIV),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_DIV, Operation::DIV),
         // 49
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_MOD, SyntaxSymbol::ASSIGN_OPER, Operation::MOD),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_MOD, Operation::MOD),
         // 50
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_BW_AND, SyntaxSymbol::ASSIGN_OPER, Operation::BW_AND),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_BW_AND, Operation::BW_AND),
         // 51
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_BW_AND_NOT, SyntaxSymbol::ASSIGN_OPER, Operation::BW_AND_NOT),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_BW_AND_NOT, Operation::BW_AND_NOT),
         // 52
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_BW_OR, SyntaxSymbol::ASSIGN_OPER, Operation::BW_OR),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_BW_OR, Operation::BW_OR),
         // 53
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_BW_XOR, SyntaxSymbol::ASSIGN_OPER, Operation::BW_XOR),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_BW_XOR, Operation::BW_XOR),
         // 54
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_L_SHIFT, SyntaxSymbol::ASSIGN_OPER, Operation::L_SHIFT),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_L_SHIFT, Operation::L_SHIFT),
         // 55
         std::bind(set_operation, std::placeholders::_1,
-                  SyntaxSymbol::A_R_SHIFT, SyntaxSymbol::ASSIGN_OPER, Operation::R_SHIFT),
+                  SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_R_SHIFT, Operation::R_SHIFT),
+
+        // 56: forward at lv1expr
+        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV1EXPRp, SyntaxSymbol::LV2EXPR),
+        // 57: copy-back/forward at lv1expr
+        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV1EXPR, SyntaxSymbol::LV1EXPRp),
+        // 58: copy operation at lv1expr
+        std::bind(pass_operation, std::placeholders::_1, SyntaxSymbol::LV1EXPR, SyntaxSymbol::LV1OPER),
+        // 59 operate at lv1expr
+        std::bind(operate, std::placeholders::_1, SyntaxSymbol::LV1EXPR, SyntaxSymbol::LV2EXPR),
+        // 60: set lv1oper
+        std::bind(set_operation, std::placeholders::_1,
+                  SyntaxSymbol::LV1OPER, SyntaxSymbol::OR, Operation::OR),
 };

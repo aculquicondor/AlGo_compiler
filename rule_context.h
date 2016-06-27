@@ -13,6 +13,7 @@ struct SymbolAttributes : public SymbolTableRecord {
     bool in_loop;
     bool is_lvalue;
     bool is_literal;
+    bool three_for;
     std::string identifier;
     Operation operation;
 };

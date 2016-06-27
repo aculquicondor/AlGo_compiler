@@ -29,13 +29,11 @@ void set_int_value(RuleContext &context, Token token) {
 }
 
 void copy_back(RuleContext &context, SyntaxSymbol symbol) {
-    context.get_attributes(symbol, 1) =
-            context.get_attributes(symbol);
+    context.get_attributes(symbol, 1) = context.get_attributes(symbol);
 }
 
-void copy_back_2(RuleContext &context, SyntaxSymbol to_symbol, SyntaxSymbol from_symbol) {
-    context.get_attributes(to_symbol) =
-            context.get_attributes(from_symbol);
+void copy_2(RuleContext &context, SyntaxSymbol to_symbol, SyntaxSymbol from_symbol) {
+    context.get_attributes(to_symbol) = context.get_attributes(from_symbol);
 }
 
 void forward_add_params(RuleContext &context, SyntaxSymbol symbol, std::size_t r_idx) {
@@ -91,9 +89,10 @@ bool is_float_type(Type type) {
 SymbolAttributes check_types(const SymbolAttributes &op1, const SymbolAttributes &op2, std::size_t line_no) {
     SymbolAttributes attributes;
     SemanticError error("Types mismatch", line_no);
+    if (not equal_dimension(op1.type_dim.dimension, op2.type_dim.dimension))
+        throw SemanticError("Dimensions mismatch", line_no);
     if (op1.is_literal == op2.is_literal) {
-        if (op1.type_dim.type != op2.type_dim.type or
-                not equal_dimension(op1.type_dim.dimension, op2.type_dim.dimension))
+        if (op1.type_dim.type != op2.type_dim.type)
             throw error;
         attributes.is_literal = op1.is_literal;
     } else {
@@ -208,20 +207,23 @@ const std::vector<SemanticRule> semantic_rules = {
 
         // 15: forward TYPEp attributes
         [](RuleContext &context) {
-            auto &t = context.get_attributes(SyntaxSymbol::TYPEp).type_dim;
-            t.dimension = context.get_attributes(SyntaxSymbol::TYPEp, 1).type_dim.dimension;
-            t.dimension.push_back((std::size_t)context.get_attributes(SyntaxSymbol::INT_LIT).int_value);
+            auto &dimension = context.get_attributes(SyntaxSymbol::TYPEp).type_dim.dimension;
+            dimension = context.get_attributes(SyntaxSymbol::TYPEp, 1).type_dim.dimension;
+            dimension.push_back((std::size_t)context.get_attributes(SyntaxSymbol::INT_LIT).int_value);
         },
         // 16: copy-back TYPEp attributes
         std::bind(copy_back, std::placeholders::_1, SyntaxSymbol::TYPEp),
         // 17: copy-back attributes from TYPE to TYPEp
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::TYPEp, SyntaxSymbol::TYPE),
+        [](RuleContext &context) {
+            context.get_attributes(SyntaxSymbol::TYPEp).type_dim.type =
+                    context.get_attributes(SyntaxSymbol::TYPE).type_dim.type;
+        },
 
         // 18: variable declaration
         std::bind(declaration, std::placeholders::_1, false),
 
         // 19: copy-back attributes from TYPEp to FUNC_DECLPp
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::FUNC_DECLp, SyntaxSymbol::TYPEp),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::FUNC_DECLp, SyntaxSymbol::TYPEp),
 
         // 20: declare function and create new scope
         [](RuleContext &context) {
@@ -249,7 +251,7 @@ const std::vector<SemanticRule> semantic_rules = {
         // 23: forward & add params from PARAM_LIST
         std::bind(forward_add_params, std::placeholders::_1, SyntaxSymbol::PARAM_LIST, 0),
         // 24: forward/copy-back params
-        std::bind(copy_back_2, std::placeholders::_1,
+        std::bind(copy_2, std::placeholders::_1,
                   SyntaxSymbol::PARAM_LIST, SyntaxSymbol::PARAM_LISTp),
         // 25: forward & add params from PARAM_LISTp
         std::bind(forward_add_params, std::placeholders::_1, SyntaxSymbol::PARAM_LISTp, 1),
@@ -375,43 +377,43 @@ const std::vector<SemanticRule> semantic_rules = {
                   SyntaxSymbol::ASSIGN_OPER, SyntaxSymbol::A_R_SHIFT, Operation::R_SHIFT),
 
         // 56: forward at lv1expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV1EXPRp, SyntaxSymbol::LV2EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV1EXPRp, SyntaxSymbol::LV2EXPR),
         // 57: copy-back/forward at lv1expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV1EXPR, SyntaxSymbol::LV1EXPRp),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV1EXPR, SyntaxSymbol::LV1EXPRp),
         // 58: copy operation at lv1exprp
         std::bind(pass_operation, std::placeholders::_1, SyntaxSymbol::LV1EXPR, SyntaxSymbol::LV1OPER),
         // 59 operate at lv1expr
         std::bind(operate, std::placeholders::_1, SyntaxSymbol::LV1EXPR, SyntaxSymbol::LV2EXPR),
         // 60: copy back at lv1exprp
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV1EXPRp, SyntaxSymbol::LV1EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV1EXPRp, SyntaxSymbol::LV1EXPR),
         // 61: set lv1oper
         std::bind(set_operation, std::placeholders::_1,
                   SyntaxSymbol::LV1OPER, SyntaxSymbol::OR, Operation::OR),
 
         // 62: forward at lv2expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV2EXPRp, SyntaxSymbol::LV3EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV2EXPRp, SyntaxSymbol::LV3EXPR),
         // 63: copy-back/forward at lv2expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV2EXPR, SyntaxSymbol::LV2EXPRp),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV2EXPR, SyntaxSymbol::LV2EXPRp),
         // 64: copy operation at lv2exprp
         std::bind(pass_operation, std::placeholders::_1, SyntaxSymbol::LV2EXPR, SyntaxSymbol::LV2OPER),
         // 65 operate at lv2expr
         std::bind(operate, std::placeholders::_1, SyntaxSymbol::LV2EXPR, SyntaxSymbol::LV3EXPR),
         // 66: copy back at lv2exprp
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV2EXPRp, SyntaxSymbol::LV2EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV2EXPRp, SyntaxSymbol::LV2EXPR),
         // 67: set lv2oper
         std::bind(set_operation, std::placeholders::_1,
                   SyntaxSymbol::LV2OPER, SyntaxSymbol::AND, Operation::AND),
 
         // 68: forward at lv3expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV3EXPRp, SyntaxSymbol::LV4EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV3EXPRp, SyntaxSymbol::LV4EXPR),
         // 69: copy-back/forward at lv3expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV3EXPR, SyntaxSymbol::LV3EXPRp),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV3EXPR, SyntaxSymbol::LV3EXPRp),
         // 70: copy operation at lv3exprp
         std::bind(pass_operation, std::placeholders::_1, SyntaxSymbol::LV3EXPR, SyntaxSymbol::LV3OPER),
         // 71 operate at lv3expr
         std::bind(operate, std::placeholders::_1, SyntaxSymbol::LV3EXPR, SyntaxSymbol::LV4EXPR),
         // 72: copy back at lv3exprp
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV3EXPRp, SyntaxSymbol::LV3EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV3EXPRp, SyntaxSymbol::LV3EXPR),
         // 73: set lv3oper
         std::bind(set_operation, std::placeholders::_1,
                   SyntaxSymbol::LV3OPER, SyntaxSymbol::EQ, Operation::EQ),
@@ -432,15 +434,15 @@ const std::vector<SemanticRule> semantic_rules = {
                   SyntaxSymbol::LV3OPER, SyntaxSymbol::GTE, Operation::GTE),
 
         // 79: forward at lv4expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV4EXPRp, SyntaxSymbol::LV5EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV4EXPRp, SyntaxSymbol::LV5EXPR),
         // 80: copy-back/forward at lv4expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV4EXPR, SyntaxSymbol::LV4EXPRp),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV4EXPR, SyntaxSymbol::LV4EXPRp),
         // 81: copy operation at lv4exprp
         std::bind(pass_operation, std::placeholders::_1, SyntaxSymbol::LV4EXPR, SyntaxSymbol::LV4OPER),
         // 82 operate at lv4expr
         std::bind(operate, std::placeholders::_1, SyntaxSymbol::LV4EXPR, SyntaxSymbol::LV5EXPR),
         // 83: copy back at lv4exprp
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV4EXPRp, SyntaxSymbol::LV4EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV4EXPRp, SyntaxSymbol::LV4EXPR),
         // 84: set lv4oper
         std::bind(set_operation, std::placeholders::_1,
                   SyntaxSymbol::LV4OPER, SyntaxSymbol::PLUS, Operation::ADD),
@@ -469,15 +471,15 @@ const std::vector<SemanticRule> semantic_rules = {
             }
         },
         // 89: forward at lv5expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV5EXPRp, SyntaxSymbol::TERM),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV5EXPRp, SyntaxSymbol::TERM),
         // 90: copy-back/forward at lv5expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV5EXPR, SyntaxSymbol::LV5EXPRp),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV5EXPR, SyntaxSymbol::LV5EXPRp),
         // 91: copy operation at lv5exprp
         std::bind(pass_operation, std::placeholders::_1, SyntaxSymbol::LV5EXPR, SyntaxSymbol::LV5OPER),
         // 92: operate at lv5expr
         std::bind(operate, std::placeholders::_1, SyntaxSymbol::LV5EXPR, SyntaxSymbol::TERM),
         // 93: copy back at lv4exprp
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::LV5EXPRp, SyntaxSymbol::LV5EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::LV5EXPRp, SyntaxSymbol::LV5EXPR),
         // 94: set lv5oper
         std::bind(set_operation, std::placeholders::_1,
                   SyntaxSymbol::LV5OPER, SyntaxSymbol::TIMES, Operation::MULT),
@@ -519,7 +521,7 @@ const std::vector<SemanticRule> semantic_rules = {
                   SyntaxSymbol::UNARYOPER, SyntaxSymbol::NOT, Operation::NOT),
 
         // 107 copy back at expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::EXPR, SyntaxSymbol::LV1EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::EXPR, SyntaxSymbol::LV1EXPR),
 
         // 108 get identifier info
         [](RuleContext &context) {
@@ -528,9 +530,9 @@ const std::vector<SemanticRule> semantic_rules = {
                 throw SemanticError("Unknown identifier \"" + name + "\"",
                                     context.get_attributes(SyntaxSymbol::IDENT).line_no);
             const auto &record = context.get_symbol_table().get_record(name);
-            auto &attributes = context.get_attributes(SyntaxSymbol::TERM);
+            auto &attributes = context.get_attributes(SyntaxSymbol::IDENT);
             attributes.identifier = name;
-            attributes.is_lvalue = true;
+            attributes.is_lvalue = not record.is_function;
             attributes.is_const = record.is_const;
             attributes.type_dim = record.type_dim;
             attributes.is_literal = false;
@@ -556,15 +558,91 @@ const std::vector<SemanticRule> semantic_rules = {
         std::bind(get_literal_info, std::placeholders::_1, Type::BOOL, Token::FALSE),
 
         // 118 copy back parenthesized lv1expr
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::TERM, SyntaxSymbol::LV1EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::TERM, SyntaxSymbol::LV1EXPR),
 
         // 119 copy back from cast
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::TERM, SyntaxSymbol::CAST),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::TERM, SyntaxSymbol::CAST),
         // 120 copy back to cast
-        std::bind(copy_back_2, std::placeholders::_1, SyntaxSymbol::CAST, SyntaxSymbol::LV1EXPR),
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::CAST, SyntaxSymbol::LV1EXPR),
         // 121: do cast
         [](RuleContext &context) {
             context.get_attributes(SyntaxSymbol::CAST).type_dim =
                     {context.get_attributes(SyntaxSymbol::TYPE).type_dim.type, {}};
+        },
+
+        // 122: forward to access
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::ACCESS, SyntaxSymbol::IDENT),
+        // 123: forward to func_call
+        [](RuleContext &context) {
+            context.get_attributes(SyntaxSymbol::FUNC_CALL) =
+                    context.get_attributes(SyntaxSymbol::ACCESS, 1);
+        },
+        // 124: forward to array_acc
+        [](RuleContext &context) {
+            context.get_attributes(SyntaxSymbol::ARRAY_ACC) =
+                    context.get_attributes(SyntaxSymbol::ACCESS, 1);
+        },
+        // 125: verify not function
+        [](RuleContext &context) {
+            const auto &attributes = context.get_attributes(SyntaxSymbol::ACCESS);
+            if (attributes.is_function)
+                throw SemanticError(attributes.identifier + " is a function", attributes.line_no);
+        },
+        // 126: verify is function
+        [](RuleContext &context) {
+            auto &attributes = context.get_attributes(SyntaxSymbol::FUNC_CALL);
+            if (not attributes.is_function)
+                throw SemanticError(attributes.identifier + " is not a function",
+                                    context.get_attributes(SyntaxSymbol::O_PAREN).line_no);
+            attributes.is_function = false;
+            attributes.is_lvalue = false;
+        },
+        // 127: access array
+        [](RuleContext &context) {
+            auto &attributes = context.get_attributes(SyntaxSymbol::ARRAY_ACC);
+            std::size_t line_no = context.get_attributes(SyntaxSymbol::C_SQBRACK).line_no;
+            if (attributes.type_dim.dimension.empty())
+                throw SemanticError("Dimensions mismatch on access to " + attributes.identifier, line_no);
+            const auto &index_typedim = context.get_attributes(SyntaxSymbol::LV1EXPR).type_dim;
+            if (not is_int_type(index_typedim.type) or not index_typedim.dimension.empty())
+                throw SemanticError("Not a valid index", line_no);
+            attributes.type_dim.dimension.pop_back();
+        },
+        // 128: forward to access
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::ACCESS, SyntaxSymbol::FUNC_CALL),
+        // 129
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::ACCESS, SyntaxSymbol::ARRAY_ACC),
+        // 130: copy back access
+        std::bind(copy_back, std::placeholders::_1, SyntaxSymbol::ACCESS),
+        // 131: copy back from access to term
+        std::bind(copy_2, std::placeholders::_1, SyntaxSymbol::TERM, SyntaxSymbol::ACCESS),
+
+        // 132: check if expr type
+        [](RuleContext &context) {
+            const auto &type_dim = context.get_attributes(SyntaxSymbol::EXPR).type_dim;
+            if (type_dim.type != Type::BOOL or not type_dim.dimension.empty())
+                throw SemanticError("Not a boolean expression",
+                                    context.get_attributes(SyntaxSymbol::IF).line_no);
+        },
+        // 133: check for_constpp expr type
+        [](RuleContext &context) {
+            const auto &type_dim = context.get_attributes(SyntaxSymbol::EXPR).type_dim;
+            if (type_dim.type != Type::BOOL or not type_dim.dimension.empty())
+                throw SemanticError("Not a boolean expression",
+                                    context.get_attributes(SyntaxSymbol::SEMICOL).line_no);
+            context.get_attributes(SyntaxSymbol::FOR_CONSTpp).three_for = true;
+        },
+        // 134
+        [](RuleContext &context) {
+            context.get_attributes(SyntaxSymbol::FOR_CONSTpp).three_for = false;
+        },
+        // 135
+        [](RuleContext &context) {
+            if (context.get_attributes(SyntaxSymbol::FOR_CONSTpp).three_for)
+                return;
+            const auto &type_dim = context.get_attributes(SyntaxSymbol::EXPR).type_dim;
+            if (type_dim.type != Type::BOOL or not type_dim.dimension.empty())
+                throw SemanticError("Not a boolean expression",
+                                    context.get_attributes(SyntaxSymbol::FOR).line_no);
         },
 };
